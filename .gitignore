@@ -78,10 +78,4 @@ TopicSnooper.py
 *.DS_Store
 
 # Some old stuff that doesn't need control but I want to keep locally
-/servants/old/
-/servants/unsorted/
-/wadsworth/old/
-/wadsworth/unsorted/
-/dataservants/old/
-/dataservants/unsorted/
-/datatests/*
+cooler/
