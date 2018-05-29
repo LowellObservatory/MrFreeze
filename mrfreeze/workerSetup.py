@@ -125,7 +125,7 @@ def toServeMan(procname, parser=parseArguments, logfile=True):
     #   Also check for kill/fratracide options so we can send SIGTERM to the
     #   other processes before trying to start a new one
     #   (which PidFile would block)
-    #   ALSO NOTE: parser() needs to implement (at a minimum):
+    #   ALSO NOTE: If you give a custom one, it needs (at a minimum):
     #       fratricide|kill, log, nlogs, config, passes
     args = parser()
 
