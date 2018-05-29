@@ -30,7 +30,7 @@ from pid import PidFile, PidFileError
 from ligmos import utils
 
 
-def parseArguments(prog=None, descr=None):
+def parseArguments(conf=None, prog=None, log=None, descr=None):
     """Setup command line arguments that everyone will use.
     """
     fclass = argp.ArgumentDefaultsHelpFormatter
@@ -44,19 +44,32 @@ def parseArguments(prog=None, descr=None):
                                  formatter_class=fclass,
                                  prog=prog)
 
-    parser.add_argument('-c', '--config', metavar='/path/to/file.conf',
-                        type=str,
-                        help='File for instrument configuration information',
-                        default='./programname.conf', nargs='?')
+    if conf is None:
+        parser.add_argument('-c', '--config', metavar='/path/to/file.conf',
+                            type=str,
+                            help='File for configuration information',
+                            default='./programname.conf', nargs='?')
+    else:
+        parser.add_argument('-c', '--config', metavar='/path/to/file.conf',
+                            type=str,
+                            help='File for configuration information',
+                            default=conf, nargs='?')
 
     parser.add_argument('-p', '--passes', metavar='/path/to/file.conf',
                         type=str,
                         help='File for instrument password information',
                         default='./passwords.conf', nargs='?')
 
-    parser.add_argument('-l', '--log', metavar='/path/to/file.log', type=str,
-                        help='File for logging of information/status messages',
-                        default='/tmp/programname.log', nargs='?')
+    if log is None:
+        parser.add_argument('-l', '--log', metavar='/path/to/file.log',
+                            type=str,
+                            help='File for logging of messages',
+                            default='/tmp/programname.log', nargs='?')
+    else:
+        parser.add_argument('-l', '--log', metavar='/path/to/file.log',
+                            type=str,
+                            help='File for logging of messages',
+                            default=log, nargs='?')
 
     parser.add_argument('-k', '--kill', action='store_true',
                         help='Kill an already running instance of Iago',
@@ -82,7 +95,9 @@ def parseArguments(prog=None, descr=None):
     return args
 
 
-def toServeMan(procname, parser=parseArguments, logfile=True):
+def toServeMan(procname, conffile, log, parser=parseArguments,
+               confparser=utils.confparsers.parseInstConf, logfile=True,
+               desc=None):
     """Main entry point, which also handles arguments.
 
     ... it's - it's a cookbook!
@@ -127,7 +142,7 @@ def toServeMan(procname, parser=parseArguments, logfile=True):
     #   (which PidFile would block)
     #   ALSO NOTE: If you give a custom one, it needs (at a minimum):
     #       fratricide|kill, log, nlogs, config, passes
-    args = parser()
+    args = parser(conf=conffile, prog=procname, log=log, descr=desc)
 
     pid = utils.pids.check_if_running(pname=procname)
 
@@ -149,7 +164,7 @@ def toServeMan(procname, parser=parseArguments, logfile=True):
                 # Returning STDOUT and STDERR to the console/whatever
                 utils.common.nicerExit()
             else:
-                print("LOOK AT ME I'M THE PARROT NOW")
+                print("LOOK AT ME I'M THE ALIEN COOK NOW")
                 print("%d second pause to allow the other process to exit." %
                       (killSleep))
                 time.sleep(killSleep)
@@ -169,8 +184,7 @@ def toServeMan(procname, parser=parseArguments, logfile=True):
         utils.logs.setup_logging(logName=args.log, nLogs=args.nlogs)
 
     # Read in the configuration file and act upon it
-    idict = utils.confparsers.parseInstConf(args.config, debug=True,
-                                            parseHardFail=False)
+    idict = confparser(args.config, parseHardFail=False)
 
     # If there's a password file, associate that with the above
     idict = utils.confparsers.parsePassConf(args.passes, idict,
