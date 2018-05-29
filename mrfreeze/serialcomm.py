@@ -20,7 +20,7 @@ import datetime as dt
 
 import serial
 
-import devices
+from . import devices
 from ligmos import utils
 
 
