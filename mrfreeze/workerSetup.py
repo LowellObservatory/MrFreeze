@@ -30,7 +30,7 @@ from pid import PidFile, PidFileError
 from ligmos import utils
 
 
-def parseArguments(conf=None, prog=None, log=None, descr=None):
+def parseArguments(conf=None, prog=None, passes=None, log=None, descr=None):
     """Setup command line arguments that everyone will use.
     """
     fclass = argp.ArgumentDefaultsHelpFormatter
@@ -55,10 +55,11 @@ def parseArguments(conf=None, prog=None, log=None, descr=None):
                             help='File for configuration information',
                             default=conf, nargs='?')
 
-    parser.add_argument('-p', '--passes', metavar='/path/to/file.conf',
-                        type=str,
-                        help='File for instrument password information',
-                        default='./passwords.conf', nargs='?')
+    if passes is not None:
+        parser.add_argument('-p', '--passes', metavar='/path/to/file.conf',
+                            type=str,
+                            help='File for instrument password information',
+                            default='./passwords.conf', nargs='?')
 
     if log is None:
         parser.add_argument('-l', '--log', metavar='/path/to/file.log',
@@ -72,7 +73,11 @@ def parseArguments(conf=None, prog=None, log=None, descr=None):
                             default=log, nargs='?')
 
     parser.add_argument('-k', '--kill', action='store_true',
-                        help='Kill an already running instance of Iago',
+                        help='Kill an already running instance',
+                        default=False)
+
+    parser.add_argument('-k9', '--kill9', action='store_true',
+                        help='Kill -9 an already running instance',
                         default=False)
 
     # Note: Need to specify dest= here since there are multiple long options
@@ -95,7 +100,7 @@ def parseArguments(conf=None, prog=None, log=None, descr=None):
     return args
 
 
-def toServeMan(procname, conffile, log, parser=parseArguments,
+def toServeMan(procname, conffile, passfile, log, parser=parseArguments,
                confparser=utils.confparsers.parseInstConf, logfile=True,
                desc=None):
     """Main entry point, which also handles arguments.
@@ -142,25 +147,39 @@ def toServeMan(procname, conffile, log, parser=parseArguments,
     #   (which PidFile would block)
     #   ALSO NOTE: If you give a custom one, it needs (at a minimum):
     #       fratricide|kill, log, nlogs, config, passes
-    args = parser(conf=conffile, prog=procname, log=log, descr=desc)
+    args = parser(conf=conffile, passes=passfile, prog=procname,
+                  log=log, descr=desc)
 
     pid = utils.pids.check_if_running(pname=procname)
 
     # Slightly ugly logic
     if pid != -1:
-        if (args.fratricide is True) or (args.kill is True):
-            print("Sending SIGTERM to %d" % (pid))
-            try:
-                os.kill(pid, signal.SIGTERM)
-            except Exception as err:
-                print("Process not killed; why?")
-                # Returning STDOUT and STDERR to the console/whatever
-                utils.common.nicerExit(err)
+        if (args.fratricide is True) or (args.kill is True) or\
+           (args.kill9 is True):
+            if args.kill9 is False:
+                print("Sending SIGTERM to %d" % (pid))
+                try:
+                    os.kill(pid, signal.SIGTERM)
+                except Exception as err:
+                    print("Process not killed; why?")
+                    # Returning STDOUT and STDERR to the console/whatever
+                    utils.common.nicerExit(err)
+            else:
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except Exception as err:
+                    print("Process not killed; why?")
+                    # Returning STDOUT and STDERR to the console/whatever
+                    utils.common.nicerExit(err)
 
             # If the SIGTERM took, then continue onwards. If we're killing,
             #   then we quit immediately. If we're replacing, then continue.
             if args.kill is True:
                 print("Sent SIGTERM to PID %d" % (pid))
+                # Returning STDOUT and STDERR to the console/whatever
+                utils.common.nicerExit()
+            elif args.kill9 is True:
+                print("Sent SIGKILL to PID %d" % (pid))
                 # Returning STDOUT and STDERR to the console/whatever
                 utils.common.nicerExit()
             else:
@@ -187,7 +206,8 @@ def toServeMan(procname, conffile, log, parser=parseArguments,
     idict = confparser(args.config, parseHardFail=False)
 
     # If there's a password file, associate that with the above
-    idict = utils.confparsers.parsePassConf(args.passes, idict,
-                                            debug=args.debug)
+    if passfile is not None:
+        idict = utils.confparsers.parsePassConf(args.passes, idict,
+                                                debug=args.debug)
 
     return idict, args, runner

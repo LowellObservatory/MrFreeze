@@ -32,6 +32,7 @@ if __name__ == "__main__":
     pidpath = '/tmp/'
 
     conf = './mrfreeze.conf'
+    passes = None
     logfile = '/tmp/mrfreeze.log'
 
     # InfluxDB database name to store stuff in
@@ -54,6 +55,7 @@ if __name__ == "__main__":
     # args: parsed options of wadsworth.py
     # runner: class that contains logic to quit nicely
     idict, args, runner = mrfreeze.workerSetup.toServeMan(mynameis, conf,
+                                                          passes,
                                                           logfile,
                                                           confparser=im,
                                                           logfile=True)
@@ -73,7 +75,7 @@ if __name__ == "__main__":
             for each in idict:
                 it = idict[each]
                 first = False
-                if it.type.lower() == "activemq":
+                if it.brokertype.lower() == "activemq":
                     # Register the custom listener class.
                     #   This will be the thing that parses packets depending
                     #   on their topic name and does the hard stuff!!
@@ -81,12 +83,12 @@ if __name__ == "__main__":
                     # crackers = iago.amqparse.subscriber(dbname=it.influxdbname)
 
                     # Establish connections and subscriptions w/our helper
-                    conn = utils.amq.amqHelper(it.host,
-                                               it.topics,
+                    conn = utils.amq.amqHelper(it.brokerhost,
+                                               it.brokertopic,
                                                dbname=it.influxdbname,
                                                user=None,
                                                passw=None,
-                                               port=61613,
+                                               port=it.brokerport,
                                                connect=True)
 #                                               listener=crackers)
                     first = True
