@@ -60,6 +60,9 @@ if __name__ == "__main__":
                                                           confparser=im,
                                                           logfile=True)
 
+
+    # Should toServeMan return the common block, too?  Need to think about this
+
     # ActiveMQ connection checker
     conn = None
 
@@ -112,61 +115,68 @@ if __name__ == "__main__":
                 #   will fail without this and we'll never reconnect!
                 first = False
 
-                dbname = "MrFreeze"
+                # Loop thru the different instrument sets
+                for inst in it:
+                    print(inst)
+
+                    # Loop thru the different deviceN* configuration sets
+                    ndevices = 4
+                    for i in range(ndevices):
+                        dnum = 'device%d' % (i+1)
+
                 name = "TravellingVacuumPump"
                 devicetype = "vactransducer_mks972b"
                 address = "mh-cube-serial-1"
                 port = "4004"
 
-                while True:
-                    # Construct the address string of who we're talking to
-                    commaddr = "socket://%s:%s" % (address, port)
+                # Construct the address string of who we're talking to
+                commaddr = "socket://%s:%s" % (address, port)
 
-                    #   TODO
-                    # Loop thru the different communication command sets
-                    pass
+                # Go and get the commands that are valid for this device
+                msgs = devices.commandSet(device=devicetype)
 
-                    # Go and get the commands that are valid for this device
-                    msgs = devices.commandSet(device=devicetype)
+                # Now send the commands
+                try:
+                    replies = scomm.serComm(commaddr, msgs)
+                except serial.SerialException as err:
+                    print("Badness 10000")
+                    print(str(err))
 
-                    # Now send the commands
-                    try:
-                        replies = scomm.serComm(commaddr, msgs)
-                    except serial.SerialException as err:
-                        print("Badness 10000")
-                        print(str(err))
+                for i, reply in enumerate(replies):
+                    # Parse our MKS specific stuff
+                    #   Because we got a dict of replies, we can
+                    #   bag and tag easier.  As defined in serComm:
+                    #     reply[0] is the message (still in bytes)
+                    #     reply[1] is the timestamp
+                    if devicetype == "vactransducer_mks972b":
+                        d, s, v = devices.MKSchopper(replies[reply][0])
+                        # Make an InfluxDB packet
+                        meas = [name]
+                        tags = {"Device": devicetype}
+                        if s == 'ACK':
+                            fieldname = reply
+                            fs = {fieldname: float(v[0])}
+                            packet = ip.makeInfluxPacket(meas,
+                                                         ts=None,
+                                                         tags=tags,
+                                                         fields=fs,
+                                                         debug=True)
+                        else:
+                            packet = None
+                    elif devicetype == 'sunpowergt':
+                        pass
+                    elif devicetype == 'lakeshore218':
+                        pass
+                    elif devicetype == 'lakeshore325':
+                        pass
 
-                    for i, reply in enumerate(replies):
-                        # Parse our MKS specific stuff
-                        #   Because we got a dict of replies, we can
-                        #   bag and tag easier.  As defined in serComm:
-                        #     reply[0] is the message (still in bytes)
-                        #     reply[1] is the timestamp
-
-                        if devicetype == "vactransducer_mks972b":
-                            d, s, v = devices.MKSchopper(replies[reply][0])
-                            # Make an InfluxDB packet
-                            meas = [name]
-                            tags = {"Device": devicetype}
-                            if s == 'ACK':
-                                fieldname = reply
-                                fs = {fieldname: float(v[0])}
-                                packet = ip.makeInfluxPacket(meas,
-                                                             ts=None,
-                                                             tags=tags,
-                                                             fields=fs,
-                                                             debug=True)
-                            else:
-                                packet = None
-
-                        if dbname is not None and packet is not None:
-                            # Actually write to the database to store
-                            #   for plotting
-                            dbase = utils.database.influxobj(dbname,
-                                                             connect=True)
-                            dbase.writeToDB(packet)
-                            dbase.closeDB()
-                    time.sleep(60.)
+                    if dbname is not None and packet is not None:
+                        # Actually write to the database to store
+                        #   for plotting
+                        dbase = utils.database.influxobj(dbname,
+                                                         connect=True)
+                        dbase.writeToDB(packet)
+                        dbase.closeDB()
 
                 # Consider taking a big nap
                 if runner.halt is False:
