@@ -49,7 +49,7 @@ if __name__ == "__main__":
     ip = utils.packetizer
     devices = mrfreeze.devices
     scomm = mrfreeze.serialcomm
-    im = utils.confparsers.parseMonConf
+    ac = utils.confparsers.getActiveConfiguration
 
     # idict: dictionary of parsed config file
     # args: parsed options of wadsworth.py
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     idict, args, runner = mrfreeze.workerSetup.toServeMan(mynameis, conf,
                                                           passes,
                                                           logfile,
-                                                          confparser=im,
+                                                          confparser=ac,
                                                           logfile=True)
 
 

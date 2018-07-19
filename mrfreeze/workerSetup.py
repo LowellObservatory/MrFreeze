@@ -101,8 +101,8 @@ def parseArguments(conf=None, prog=None, passes=None, log=None, descr=None):
 
 
 def toServeMan(procname, conffile, passfile, log, parser=parseArguments,
-               confparser=utils.confparsers.parseInstConf, logfile=True,
-               desc=None):
+               confparser=utils.confparsers.getActiveConfiguration,
+               logfile=True, desc=None):
     """Main entry point, which also handles arguments.
 
     ... it's - it's a cookbook!

@@ -22,6 +22,12 @@ def commandSet(device="vactransducer_mks972b"):
     Specifically, these are good for:
 
     MKS (or Kurt J. Lesker) vacuum pressure transducers: 972B
+    Sunpower CryoTel-style coolers
+    Lake Shore 325, 218
+
+    cset should be a dictionary mapping a readable description of a param
+    to the actual serial command needed to get it.  Parsing the result
+    occurs elsewhere.
     """
 
     if device == "vactransducer_mks972b":
@@ -34,6 +40,47 @@ def commandSet(device="vactransducer_mks972b"):
                 "ColdCathode": cc,
                 "CMB3Digit": d3,
                 "CMB4Digit": d4}
+    elif device == "sunpowergt":
+        # 4800 baud
+        # 8 data, 1 stop
+        # no parity
+        # CR line termination
+        cstate = "STATE"
+        getctt = "TC"
+        getmpr = "P"
+        getcpr = "E"
+
+        cset = {"CoolerState": cstate,
+                "ColdTip": getctt,
+                "RealPower": getmpr,
+                "CalcPower": getcpr}
+    elif device == "lakeshore218":
+        # 9600 baud, half duplex
+        # 1 start, 7 data, 1 parity, 1 stop
+        # odd parity
+        # CRLF line termination
+        # KRDG? 0 gets all inputs, 1 thru 8
+        gettmp = "KRDG?"
+        getitp = "TEMP?"
+
+        cset = {"SourceTemps": gettmp,
+                "InternalTemp": getitp}
+    elif device == "lakeshore325":
+        # 9600 baud, half duplex
+        # 1 start, 7 data, 1 parity, 1 stop
+        # odd parity
+        # CRLF line termination
+        # Note: NIHTS uses loop 2, not loop 1.
+        #  Loop 1 is ... terrifying. 25 W max compared to 2W max
+        gettmp = "KRDG?"
+        getset = "SETP?"
+        gethtr = "HTR?"
+        getitp = "TEMP?"
+
+        cset = {"SourceTemp": gettmp,
+                "Setpoint": getset,
+                "Heater": gethtr,
+                "InternalTemp": getitp}
     else:
         print("INVALID DEVICE: %s" % (device))
         cset = None
