@@ -101,7 +101,7 @@ def parseArguments(conf=None, prog=None, passes=None, log=None, descr=None):
 
 
 def toServeMan(procname, conffile, passfile, log, parser=parseArguments,
-               confparser=utils.confparsers.getActiveConfiguration,
+               conftype=utils.common.baseTarget,
                logfile=True, desc=None):
     """Main entry point, which also handles arguments.
 
@@ -203,11 +203,13 @@ def toServeMan(procname, conffile, passfile, log, parser=parseArguments,
         utils.logs.setup_logging(logName=args.log, nLogs=args.nlogs)
 
     # Read in the configuration file and act upon it
-    idict = confparser(args.config, parseHardFail=False)
+    idict, cblk = utils.confparsers.getActiveConfiguration(args.config,
+                                                           conftype=conftype,
+                                                           debug=args.debug)
 
     # If there's a password file, associate that with the above
     if passfile is not None:
         idict = utils.confparsers.parsePassConf(args.passes, idict,
                                                 debug=args.debug)
 
-    return idict, args, runner
+    return idict, cblk, args, runner

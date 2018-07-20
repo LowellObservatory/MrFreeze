@@ -49,19 +49,16 @@ if __name__ == "__main__":
     ip = utils.packetizer
     devices = mrfreeze.devices
     scomm = mrfreeze.serialcomm
-    ac = utils.confparsers.getActiveConfiguration
+    ic = utils.common.deviceTarget
 
     # idict: dictionary of parsed config file
     # args: parsed options of wadsworth.py
     # runner: class that contains logic to quit nicely
-    idict, args, runner = mrfreeze.workerSetup.toServeMan(mynameis, conf,
-                                                          passes,
-                                                          logfile,
-                                                          confparser=ac,
-                                                          logfile=True)
-
-
-    # Should toServeMan return the common block, too?  Need to think about this
+    idict, cblk, args, runner = mrfreeze.workerSetup.toServeMan(mynameis, conf,
+                                                                passes,
+                                                                logfile,
+                                                                conftype=ic,
+                                                                logfile=True)
 
     # ActiveMQ connection checker
     conn = None
@@ -72,26 +69,22 @@ if __name__ == "__main__":
             #   (helpful to find starts/restarts when scanning thru logs)
             utils.common.printPreamble(p, idict)
 
-            # One by one, set up the messager connections.
-            #   THIS OF COURSE implies that the connections are done elsewhere
-            #   in Iago's codepath; specifically iago.amqparse (etc.)
-            for each in idict:
-                it = idict[each]
+            # One by one, set up the broker connections.
+            if cblk is not None:
                 first = False
-                if it.brokertype.lower() == "activemq":
+                if cblk.brokertype.lower() == "activemq":
                     # Register the custom listener class.
                     #   This will be the thing that parses packets depending
                     #   on their topic name and does the hard stuff!!
                     #   It should be a subclass of (stomp.py) subscriber.
-                    # crackers = iago.amqparse.subscriber(dbname=it.influxdbname)
 
                     # Establish connections and subscriptions w/our helper
-                    conn = utils.amq.amqHelper(it.brokerhost,
-                                               it.brokertopic,
-                                               dbname=it.influxdbname,
+                    conn = utils.amq.amqHelper(cblk.brokerhost,
+                                               cblk.brokertopic,
+                                               dbname=cblk.influxdbname,
                                                user=None,
                                                passw=None,
-                                               port=it.brokerport,
+                                               port=cblk.brokerport,
                                                connect=True)
 #                                               listener=crackers)
                     first = True
@@ -116,7 +109,7 @@ if __name__ == "__main__":
                 first = False
 
                 # Loop thru the different instrument sets
-                for inst in it:
+                for inst in idict:
                     print(inst)
 
                     # Loop thru the different deviceN* configuration sets
