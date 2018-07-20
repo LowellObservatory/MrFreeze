@@ -31,10 +31,15 @@ def commandSet(device="vactransducer_mks972b"):
     """
 
     if device == "vactransducer_mks972b":
-        mp = "@254PR1?;FF"
-        cc = "@254PR2?;FF"
-        d3 = "@254PR3?;FF"
-        d4 = "@254PR4?;FF"
+        # 9600 baud
+        # 8 data, 1 stop bit
+        # no parity
+        # ';FF' termination
+        term = ";FF"
+        mp = "@254PR1?" + term
+        cc = "@254PR2?" + term
+        d3 = "@254PR3?" + term
+        d4 = "@254PR4?" + term
 
         cset = {"MicroPirani": mp,
                 "ColdCathode": cc,
@@ -45,10 +50,11 @@ def commandSet(device="vactransducer_mks972b"):
         # 8 data, 1 stop
         # no parity
         # CR line termination
-        cstate = "STATE"
-        getctt = "TC"
-        getmpr = "P"
-        getcpr = "E"
+        term = "\r"
+        cstate = "STATE" + term
+        getctt = "TC" + term
+        getmpr = "P" + term
+        getcpr = "E" + term
 
         cset = {"CoolerState": cstate,
                 "ColdTip": getctt,
@@ -60,8 +66,9 @@ def commandSet(device="vactransducer_mks972b"):
         # odd parity
         # CRLF line termination
         # KRDG? 0 gets all inputs, 1 thru 8
-        gettmp = "KRDG?"
-        getitp = "TEMP?"
+        term = "\r\n"
+        gettmp = "KRDG?" + term
+        getitp = "TEMP?" + term
 
         cset = {"SourceTemps": gettmp,
                 "InternalTemp": getitp}
@@ -72,10 +79,11 @@ def commandSet(device="vactransducer_mks972b"):
         # CRLF line termination
         # Note: NIHTS uses loop 2, not loop 1.
         #  Loop 1 is ... terrifying. 25 W max compared to 2W max
-        gettmp = "KRDG?"
-        getset = "SETP?"
-        gethtr = "HTR?"
-        getitp = "TEMP?"
+        term = "\r\n"
+        gettmp = "KRDG?" + term
+        getset = "SETP?" + term
+        gethtr = "HTR?" + term
+        getitp = "TEMP?" + term
 
         cset = {"SourceTemp": gettmp,
                 "Setpoint": getset,
