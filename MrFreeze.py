@@ -60,6 +60,15 @@ if __name__ == "__main__":
                                                                 conftype=ic,
                                                                 logfile=True)
 
+    # Gather up all the broker topics that are defined in the diff sections.
+    #   Assumes that they're all 'brokertopic' which is what they should be.
+    topics = []
+    for each in idict:
+        try:
+            topics.append(idict[each].brokertopic)
+        except AttributeError:
+            pass
+
     # ActiveMQ connection checker
     conn = None
 
@@ -77,10 +86,11 @@ if __name__ == "__main__":
                     #   This will be the thing that parses packets depending
                     #   on their topic name and does the hard stuff!!
                     #   It should be a subclass of (stomp.py) subscriber.
+                    # (removed for now)
 
                     # Establish connections and subscriptions w/our helper
                     conn = utils.amq.amqHelper(cblk.brokerhost,
-                                               cblk.brokertopic,
+                                               topics=topics,
                                                dbname=cblk.influxdbname,
                                                user=None,
                                                passw=None,
