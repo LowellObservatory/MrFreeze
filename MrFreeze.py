@@ -127,11 +127,6 @@ if __name__ == "__main__":
                     for i in range(ndevices):
                         dnum = 'device%d' % (i+1)
 
-                name = "TravellingVacuumPump"
-                devicetype = "vactransducer_mks972b"
-                address = "mh-cube-serial-1"
-                port = "4004"
-
                 # Construct the address string of who we're talking to
                 commaddr = "socket://%s:%s" % (address, port)
 
