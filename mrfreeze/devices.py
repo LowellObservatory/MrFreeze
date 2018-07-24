@@ -68,10 +68,8 @@ def commandSet(device="vactransducer_mks972b"):
         # KRDG? 0 gets all inputs, 1 thru 8
         term = "\r\n"
         gettmp = "KRDG?" + term
-        getitp = "TEMP?" + term
 
-        cset = {"SourceTemps": gettmp,
-                "InternalTemp": getitp}
+        cset = {"SourceTemps": gettmp}
     elif device == "lakeshore325":
         # 9600 baud, half duplex
         # 1 start, 7 data, 1 parity, 1 stop
@@ -88,15 +86,12 @@ def commandSet(device="vactransducer_mks972b"):
         getsetB = "SETP? 2" + term
         gethtrB = "HTR? 2" + term
 
-        getitp = "TEMP?" + term
-
         cset = {"SourceTempA": gettmpA,
                 "SetpointA": getsetA,
                 "HeaterA": gethtrA,
                 "SourceTempB": gettmpB,
                 "SetpointB": getsetB,
-                "HeaterB": gethtrB,
-                "LakeShoreTemp": getitp}
+                "HeaterB": gethtrB}
     else:
         print("INVALID DEVICE: %s" % (device))
         cset = None
