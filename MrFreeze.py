@@ -156,6 +156,7 @@ if __name__ == "__main__":
                                 else:
                                     packet = None
                             elif dvice.type == 'sunpowergt':
+                                devices.sunpowerchopper(replies[reply][0])
                                 pass
                             elif dvice.type == 'lakeshore218':
                                 pass

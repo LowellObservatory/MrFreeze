@@ -99,16 +99,25 @@ def commandSet(device="vactransducer_mks972b"):
     return cset
 
 
-def MKSchopper(reply):
+def decode(reply):
     """
     """
-    # Regular format:
-    #   @<3 digit address><ACK|NAK><value|error code>;FF
     try:
         dr = reply.decode("utf-8")
     except Exception as err:
         print("WTF?")
         print(str(err))
+        dr = ''
+
+    return dr
+
+
+def MKSchopper(reply):
+    """
+    """
+    # Regular format:
+    #   @<3 digit address><ACK|NAK><value|error code>;FF
+    dr = decode(reply)
 
     if dr != '':
         device = dr[1:4]
@@ -128,3 +137,45 @@ def MKSchopper(reply):
     print()
 
     return device, status, vals
+
+
+def sunpowerchopper(reply):
+    """
+    """
+    splitter = "\r\n"
+    dr = decode(reply)
+
+    if dr != '':
+        # Split the response into its parts; skip the first line
+        #   since it's just a command echo but keep it for parse routing.
+        splits = dr.split(splitter)
+        cmd = splits[0]
+        # The last one is always just a blank because of the ending splitter
+        rep = splits[1:-1]
+
+        print("%s: " % (cmd), end='')
+        print(rep)
+        if cmd.lower() == "state":
+            # Multi-stage list comprehension since I can't figure out
+            #   how to do it all in one go....
+            all = [v.split("=") for v in rep]
+            keys = [v[0].strip() for v in all]
+            vals = [float(v[1]) for v in all]
+
+            # Now combine the two into a more useful dict
+            finale = dict(zip(keys, vals))
+        elif cmd.lower() == "tc" or cmd.lower() == "p":
+            finale = float(rep[0])
+        elif cmd.lower() == "e":
+            finale = [float(v) for v in rep]
+        else:
+            print("Unknown Sunpower Response!")
+            finale = None
+
+        print({cmd: finale})
+        return {cmd: finale}
+
+
+
+
+
