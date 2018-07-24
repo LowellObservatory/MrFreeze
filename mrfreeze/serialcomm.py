@@ -66,7 +66,7 @@ def serWriter(ser, msg):
         print(str(err))
 
 
-def serComm(host, cmds):
+def serComm(host, cmds, debug=False):
     """
     """
     allreplies = {}
@@ -83,7 +83,9 @@ def serComm(host, cmds):
 
                 # Get the answer; it'll take timeout seconds to return
                 byteReply = read_all(ser)
-                print("%d bytes recieved in response" % (len(byteReply)))
+                if debug is True:
+                    print("%d bytes recieved in response" % (len(byteReply)))
+                    print(byteReply)
 
                 # Store the stuff for returning
                 allreplies.update({each: [byteReply, t]})

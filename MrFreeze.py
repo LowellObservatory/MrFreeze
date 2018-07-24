@@ -127,7 +127,8 @@ if __name__ == "__main__":
 
                         # Now send the commands
                         try:
-                            replies = scomm.serComm(dvice.serialURL, msgs)
+                            replies = scomm.serComm(dvice.serialURL, msgs,
+                                                    debug=True)
                         except serial.SerialException as err:
                             print("Badness 10000")
                             print(str(err))
@@ -155,11 +156,11 @@ if __name__ == "__main__":
                                 else:
                                     packet = None
                             elif dvice.type == 'sunpowergt':
-                                print(reply)
+                                pass
                             elif dvice.type == 'lakeshore218':
-                                print(reply)
+                                pass
                             elif dvice.type == 'lakeshore325':
-                                print(reply)
+                                pass
 
                             if dbname is not None and packet is not None:
                                 # Actually write to the database to store
