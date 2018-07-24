@@ -139,7 +139,7 @@ def chopperMKS(reply):
     return device, status, vals
 
 
-def chopperLakeShore(reply, type=218):
+def chopperLakeShore(cmd, reply, modelnum=218):
     """
     The Lake Shore units don't echo the command back, so that's why we need
     the commands in addition to the replies to parse things properly.
