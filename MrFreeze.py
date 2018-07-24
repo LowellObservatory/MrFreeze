@@ -121,60 +121,53 @@ if __name__ == "__main__":
                 # Loop thru the different instrument sets
                 for inst in idict:
                     print(inst)
+                    for dvice in idict[inst].devices:
+                        # Go and get commands that are valid for the device
+                        msgs = devices.commandSet(device=dvice.type)
 
-                    # Loop thru the different deviceN* configuration sets
-                    ndevices = 4
-                    for i in range(ndevices):
-                        dnum = 'device%d' % (i+1)
+                        # Now send the commands
+                        try:
+                            replies = scomm.serComm(dvice.serialURL, msgs)
+                        except serial.SerialException as err:
+                            print("Badness 10000")
+                            print(str(err))
 
-                # Construct the address string of who we're talking to
-                commaddr = "socket://%s:%s" % (address, port)
+                        for i, reply in enumerate(replies):
+                            # Parse our MKS specific stuff
+                            #   Because we got a dict of replies, we can
+                            #   bag and tag easier.  As defined in serComm:
+                            #     reply[0] is the message (still in bytes)
+                            #     reply[1] is the timestamp
+                            if dvice.type == "vactransducer_mks972b":
+                                d, s, v = devices.MKSchopper(replies[reply][0])
+                                # Make an InfluxDB packet
+                                meas = [idict[inst].name]
+                                tags = {"Device": dvice.type}
+                                # Check the command status (ACK == good)
+                                if s == 'ACK':
+                                    fieldname = reply
+                                    fs = {fieldname: float(v[0])}
+                                    packet = ip.makeInfluxPacket(meas,
+                                                                 ts=None,
+                                                                 tags=tags,
+                                                                 fields=fs,
+                                                                 debug=True)
+                                else:
+                                    packet = None
+                            elif dvice.type == 'sunpowergt':
+                                print(reply)
+                            elif dvice.type == 'lakeshore218':
+                                print(reply)
+                            elif dvice.type == 'lakeshore325':
+                                print(reply)
 
-                # Go and get the commands that are valid for this device
-                msgs = devices.commandSet(device=devicetype)
-
-                # Now send the commands
-                try:
-                    replies = scomm.serComm(commaddr, msgs)
-                except serial.SerialException as err:
-                    print("Badness 10000")
-                    print(str(err))
-
-                for i, reply in enumerate(replies):
-                    # Parse our MKS specific stuff
-                    #   Because we got a dict of replies, we can
-                    #   bag and tag easier.  As defined in serComm:
-                    #     reply[0] is the message (still in bytes)
-                    #     reply[1] is the timestamp
-                    if devicetype == "vactransducer_mks972b":
-                        d, s, v = devices.MKSchopper(replies[reply][0])
-                        # Make an InfluxDB packet
-                        meas = [name]
-                        tags = {"Device": devicetype}
-                        if s == 'ACK':
-                            fieldname = reply
-                            fs = {fieldname: float(v[0])}
-                            packet = ip.makeInfluxPacket(meas,
-                                                         ts=None,
-                                                         tags=tags,
-                                                         fields=fs,
-                                                         debug=True)
-                        else:
-                            packet = None
-                    elif devicetype == 'sunpowergt':
-                        pass
-                    elif devicetype == 'lakeshore218':
-                        pass
-                    elif devicetype == 'lakeshore325':
-                        pass
-
-                    if dbname is not None and packet is not None:
-                        # Actually write to the database to store
-                        #   for plotting
-                        dbase = utils.database.influxobj(dbname,
-                                                         connect=True)
-                        dbase.writeToDB(packet)
-                        dbase.closeDB()
+                            if dbname is not None and packet is not None:
+                                # Actually write to the database to store
+                                #   for plotting
+                                dbase = utils.database.influxobj(dbname,
+                                                                 connect=True)
+                                dbase.writeToDB(packet)
+                                dbase.closeDB()
 
                 # Consider taking a big nap
                 if runner.halt is False:
