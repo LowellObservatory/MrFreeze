@@ -137,8 +137,11 @@ if __name__ == "__main__":
                             # Parse our MKS specific stuff
                             #   Because we got a dict of replies, we can
                             #   bag and tag easier.  As defined in serComm:
-                            #     reply[0] is the message (still in bytes)
-                            #     reply[1] is the timestamp
+                            #
+                            #     reply is the "key" from devices.commandSet
+                            #     replies[reply][0] is the bytes message
+                            #     replies[reply][1] is the timestamp
+                            #
                             if dvice.type == "vactransducer_mks972b":
                                 d, s, v = devices.chopperMKS(replies[reply][0])
                                 # Make an InfluxDB packet
@@ -157,12 +160,21 @@ if __name__ == "__main__":
                                     packet = None
                             elif dvice.type == 'sunpowergt':
                                 devices.chopperSunpower(replies[reply][0])
-                                pass
                             elif dvice.type == 'lakeshore218':
-                                pass
+                                # NOTE: Need to pass in the tag/key here
+                                #   because the LS doesn't echo commands.
+                                #   No good way to determine response type
+                                #   unless the overall structure here is
+                                #   changed to parse the result immediately
+                                #   on reply rather than doing all the comms
+                                #   in one big chunk like we are right now.
+                                devices.chopperLakeShore(reply,
+                                                         replies[reply][0],
+                                                         modelnum=218)
                             elif dvice.type == 'lakeshore325':
-                                pass
-
+                                devices.chopperLakeShore(reply,
+                                                         replies[reply][0],
+                                                         modelnum=325)
                             if dbname is not None and packet is not None:
                                 # Actually write to the database to store
                                 #   for plotting
