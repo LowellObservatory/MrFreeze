@@ -140,7 +140,7 @@ if __name__ == "__main__":
                             #     reply[0] is the message (still in bytes)
                             #     reply[1] is the timestamp
                             if dvice.type == "vactransducer_mks972b":
-                                d, s, v = devices.MKSchopper(replies[reply][0])
+                                d, s, v = devices.chopperMKS(replies[reply][0])
                                 # Make an InfluxDB packet
                                 meas = [idict[inst].name]
                                 tags = {"Device": dvice.type}
@@ -156,7 +156,7 @@ if __name__ == "__main__":
                                 else:
                                     packet = None
                             elif dvice.type == 'sunpowergt':
-                                devices.sunpowerchopper(replies[reply][0])
+                                devices.chopperSunpower(replies[reply][0])
                                 pass
                             elif dvice.type == 'lakeshore218':
                                 pass

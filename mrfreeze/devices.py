@@ -112,7 +112,7 @@ def decode(reply):
     return dr
 
 
-def MKSchopper(reply):
+def chopperMKS(reply):
     """
     """
     # Regular format:
@@ -139,7 +139,18 @@ def MKSchopper(reply):
     return device, status, vals
 
 
-def sunpowerchopper(reply):
+def chopperLakeShore(reply, type=218):
+    """
+    The Lake Shore units don't echo the command back, so that's why we need
+    the commands in addition to the replies to parse things properly.
+    """
+    dr = decode(reply)
+
+    if dr != '':
+        pass
+
+
+def chopperSunpower(reply):
     """
     """
     splitter = "\r\n"
@@ -150,11 +161,9 @@ def sunpowerchopper(reply):
         #   since it's just a command echo but keep it for parse routing.
         splits = dr.split(splitter)
         cmd = splits[0]
-        # The last one is always just a blank because of the ending splitter
+        # Last one is always '' because of the ending line termination
         rep = splits[1:-1]
 
-        print("%s: " % (cmd), end='')
-        print(rep)
         if cmd.lower() == "state":
             # Multi-stage list comprehension since I can't figure out
             #   how to do it all in one go....
@@ -174,8 +183,3 @@ def sunpowerchopper(reply):
 
         print({cmd: finale})
         return {cmd: finale}
-
-
-
-
-
