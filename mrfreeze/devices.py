@@ -80,15 +80,23 @@ def commandSet(device="vactransducer_mks972b"):
         # Note: NIHTS uses loop 2, not loop 1.
         #  Loop 1 is ... terrifying. 25 W max compared to 2W max
         term = "\r\n"
-        gettmp = "KRDG?" + term
-        getset = "SETP?" + term
-        gethtr = "HTR?" + term
+        gettmpA = "KRDG?A" + term
+        getsetA = "SETP? 1" + term
+        gethtrA = "HTR? 1" + term
+
+        gettmpB = "KRDG?B" + term
+        getsetB = "SETP? 2" + term
+        gethtrB = "HTR? 2" + term
+
         getitp = "TEMP?" + term
 
-        cset = {"SourceTemp": gettmp,
-                "Setpoint": getset,
-                "Heater": gethtr,
-                "InternalTemp": getitp}
+        cset = {"SourceTempA": gettmpA,
+                "SetpointA": getsetA,
+                "HeaterA": gethtrA,
+                "SourceTempB": gettmpB,
+                "SetpointB": getsetB,
+                "HeaterB": gethtrB,
+                "LakeShoreTemp": getitp}
     else:
         print("INVALID DEVICE: %s" % (device))
         cset = None
