@@ -100,7 +100,8 @@ def parseArguments(conf=None, prog=None, passes=None, log=None, descr=None):
     return args
 
 
-def toServeMan(procname, conffile, passfile, log, parser=parseArguments,
+def toServeMan(procname, conffile, passfile, log,
+               parser=parseArguments,
                conftype=utils.common.baseTarget,
                logfile=True, desc=None):
     """Main entry point, which also handles arguments.
