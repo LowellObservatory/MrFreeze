@@ -139,7 +139,7 @@ def chopperMKS(reply):
     return device, status, vals
 
 
-def chopperLakeShore(cmd, reply, modelnum=218):
+def chopperLakeShore(cmdtype, reply, modelnum=218):
     """
     The Lake Shore units don't echo the command back, so that's why we need
     the commands in addition to the replies to parse things properly.
@@ -147,7 +147,19 @@ def chopperLakeShore(cmd, reply, modelnum=218):
     dr = decode(reply)
 
     if dr != '':
-        pass
+        if modelnum == 218:
+            if cmdtype.lower() == "sourcetemps":
+                finale = [float(v) for v in dr.strip().split(',')]
+            else:
+                print("Unknown LS218 Reply!")
+        elif modelnum == 325:
+            # All of the commands we defined above are single-shot/answer
+            #   commands, so just turn them into floats and move on.
+            finale = float(dr)
+        else:
+            print("Unknown Lake Shore Model Number!")
+
+        return {cmdtype: finale}
 
 
 def chopperSunpower(reply):
