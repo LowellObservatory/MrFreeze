@@ -112,7 +112,7 @@ def decode(reply):
     return dr
 
 
-def chopMKS(reply):
+def parseMKS(reply):
     """
     """
     # Regular format:
@@ -139,7 +139,7 @@ def chopMKS(reply):
     return device, status, vals
 
 
-def chopLakeShore(cmdtype, reply, modelnum=218):
+def parseLakeShore(cmdtype, reply, modelnum=218):
     """
     The Lake Shore units don't echo the command back, so that's why we need
     the commands in addition to the replies to parse things properly.
@@ -162,7 +162,7 @@ def chopLakeShore(cmdtype, reply, modelnum=218):
         return {cmdtype: finale}
 
 
-def chopSunpower(reply):
+def parseSunpower(reply):
     """
     """
     splitter = "\r\n"

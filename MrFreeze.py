@@ -35,9 +35,6 @@ if __name__ == "__main__":
     passes = None
     logfile = '/tmp/mrfreeze.log'
 
-    # InfluxDB database name to store stuff in
-    dbname = 'MrFreeze'
-
     # Interval between successive runs of the polling loop (seconds)
     bigsleep = 600
 
@@ -50,6 +47,13 @@ if __name__ == "__main__":
     devices = mrfreeze.devices
     scomm = mrfreeze.serialcomm
     ic = utils.common.deviceTarget
+    udb = utils.database
+
+    # MUY IMPORTANTE
+    #   If you want to generate the file needed for LOIS compatability
+    #   for NIHTS (/home/obsnihts/cooler/coolerupf.current) IN ADDITION TO
+    #   the broker publishing path, set this to True.
+    loiscompat = True
 
     # idict: dictionary of parsed config file
     # args: parsed options of wadsworth.py
@@ -143,7 +147,7 @@ if __name__ == "__main__":
                             #     replies[reply][1] is the timestamp
                             #
                             if dvice.type == "vactransducer_mks972b":
-                                d, s, v = devices.chopMKS(replies[reply][0])
+                                d, s, v = devices.parseMKS(replies[reply][0])
 
                                 # Make an InfluxDB packet
                                 meas = [idict[inst].name]
@@ -160,7 +164,7 @@ if __name__ == "__main__":
                                 else:
                                     packet = None
                             elif dvice.type == 'sunpowergt':
-                                ans = devices.chopSunpower(replies[reply][0])
+                                ans = devices.parseSunpower(replies[reply][0])
                             elif dvice.type == 'lakeshore218':
                                 # NOTE: Need to pass in the tag/key here
                                 #   because the LS doesn't echo commands.
@@ -169,18 +173,19 @@ if __name__ == "__main__":
                                 #   changed to parse the result immediately
                                 #   on reply rather than doing all the comms
                                 #   in one big chunk like we are right now.
-                                devices.chopLakeShore(reply,
-                                                      replies[reply][0],
-                                                      modelnum=218)
+                                devices.parseLakeShore(reply,
+                                                       replies[reply][0],
+                                                       modelnum=218)
                             elif dvice.type == 'lakeshore325':
-                                devices.chopLakeShore(reply,
-                                                      replies[reply][0],
-                                                      modelnum=325)
-                            if dbname is not None and packet is not None:
+                                devices.parseLakeShore(reply,
+                                                       replies[reply][0],
+                                                       modelnum=325)
+                            if cblk.influxdbname is not None and\
+                               packet is not None:
                                 # Actually write to the database to store
                                 #   for plotting
-                                dbase = utils.database.influxobj(dbname,
-                                                                 connect=True)
+                                dbase = udb.influxobj(cblk.influxdbname,
+                                                      connect=True)
                                 dbase.writeToDB(packet)
                                 dbase.closeDB()
 
