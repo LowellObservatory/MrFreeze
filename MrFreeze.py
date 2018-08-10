@@ -20,6 +20,7 @@ import serial
 
 import mrfreeze
 from ligmos import utils
+from ligmos import workers
 
 from pid import PidFile, PidFileError
 
@@ -31,6 +32,7 @@ if __name__ == "__main__":
         mynameis = mynameis[:-3]
     pidpath = '/tmp/'
 
+    # Define the default files we'll use
     conf = './mrfreeze.conf'
     passes = None
     logfile = '/tmp/mrfreeze.log'
@@ -58,11 +60,11 @@ if __name__ == "__main__":
     # idict: dictionary of parsed config file
     # args: parsed options of wadsworth.py
     # runner: class that contains logic to quit nicely
-    idict, cblk, args, runner = mrfreeze.workerSetup.toServeMan(mynameis, conf,
-                                                                passes,
-                                                                logfile,
-                                                                conftype=ic,
-                                                                logfile=True)
+    idict, cblk, args, runner = workers.workerSetup.toServeMan(mynameis, conf,
+                                                               passes,
+                                                               logfile,
+                                                               conftype=ic,
+                                                               logfile=True)
 
     # Gather up all the broker topics that are defined in the diff sections.
     #   Assumes that they're all 'brokertopic' which is what they should be.
