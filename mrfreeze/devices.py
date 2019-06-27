@@ -31,6 +31,8 @@ def queryCommands(device="vactransducer_mks972b"):
     """
 
     if device == "vactransducer_mks972b":
+        # NOTE: This is the command set for the gauge directly; the controller
+        #  (MKS PDR900) has a *different* command set that could be used
         # 9600 baud
         # 8 data, 1 stop bit
         # no parity
@@ -179,9 +181,9 @@ def parseSunpower(reply):
         if cmd.lower() == "state":
             # Multi-stage list comprehension since I can't figure out
             #   how to do it all in one go....
-            all = [v.split("=") for v in rep]
-            keys = [v[0].strip() for v in all]
-            vals = [float(v[1]) for v in all]
+            alls = [v.split("=") for v in rep]
+            keys = [v[0].strip() for v in alls]
+            vals = [float(v[1]) for v in alls]
 
             # Now combine the two into a more useful dict
             finale = dict(zip(keys, vals))

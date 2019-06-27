@@ -15,7 +15,10 @@ Further description.
 
 from __future__ import division, print_function, absolute_import
 
+from collections import OrderedDict
+
 import serial
+import xmltodict as xmld
 
 from ligmos.utils import packetizer
 
@@ -23,7 +26,28 @@ from . import devices
 from . import serialcomm as scomm
 
 
-def publish_MKS972b(dvice, replies, db=None):
+def constructXMLPacket(instrument, devicetype, fields, debug=False):
+    """
+    fieldset should be a dict!
+    """
+    if not isinstance(fields, dict):
+        print("fieldset must be a dict! Aborting.")
+        return None
+
+    dPacket = OrderedDict()
+    rootTag = "MrFreezeCommunique"
+
+    restOfStuff = {instrument: {devicetype: fields}}
+
+    dPacket.update({rootTag: restOfStuff})
+    xPacket = xmld.unparse(dPacket)
+    if debug is True:
+        print(xmld.unparse(dPacket, pretty=True))
+
+    return xPacket
+
+
+def publish_MKS972b(dvice, replies, db=None, broker=None):
     """
     Parse our MKS specific stuff; as defined in serComm:
 
@@ -42,6 +66,9 @@ def publish_MKS972b(dvice, replies, db=None):
         if s == 'ACK':
             fieldname = reply
             fields.update({fieldname: float(v[0])})
+
+    xmlpkt = constructXMLPacket(dvice.instrument, dvice.devtype, fields,
+                                debug=True)
 
     pkt = packetizer.makeInfluxPacket(meas,
                                       ts=None,
