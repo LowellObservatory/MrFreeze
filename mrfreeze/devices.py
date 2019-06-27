@@ -187,10 +187,14 @@ def parseSunpower(reply):
 
             # Now combine the two into a more useful dict
             finale = dict(zip(keys, vals))
-        elif cmd.lower() == "tc" or cmd.lower() == "p":
-            finale = float(rep[0])
+        elif cmd.lower() == "tc":
+            finale = {"ColdTipTemp": float(rep[0])}
+        elif cmd.lower() == "p":
+            finale = {"ActualPower": float(rep[0])}
         elif cmd.lower() == "e":
-            finale = [float(v) for v in rep]
+            keys = ["MaxPower", "MinPower", "CommandedPower"]
+            vals = [float(v) for v in rep]
+            finale = dict(zip(keys, vals))
         else:
             print("Unknown Sunpower Response!")
             finale = None
