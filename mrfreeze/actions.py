@@ -47,11 +47,48 @@ def constructXMLPacket(instrument, devicetype, fields, debug=False):
     return xPacket
 
 
+def publish_Sunpower(dvice, replies, db=None, broker=None):
+    """
+    Parse our Sunpower stuff; as defined in serComm:
+
+    reply is the "key" from devices.queryCommands
+    replies[reply][0] is the bytes message
+    replies[reply][1] is the timestamp
+    """
+    # Make an InfluxDB packet
+    measname = "%s_cryo" % (dvice.instrument)
+    meas = [measname]
+    tags = {"Device": dvice.devtype}
+    fields = {}
+    for reply in replies:
+        ans = devices.parseSunpower(replies[reply][0])
+
+    #     # Check the command status (ACK == good)
+    #     if s == 'ACK':
+    #         fieldname = reply
+    #         fields.update({fieldname: float(v[0])})
+
+    # xmlpkt = constructXMLPacket(dvice.instrument, dvice.devtype, fields,
+    #                             debug=True)
+
+    # if broker is not None and xmlpkt is not None:
+    #     broker.publish(dvice.brokertopic, xmlpkt, debug=True)
+
+    # pkt = packetizer.makeInfluxPacket(meas,
+    #                                   ts=None,
+    #                                   tags=tags,
+    #                                   fields=fields,
+    #                                   debug=True)
+
+    # if db is not None and pkt is not None:
+    #     db.singleCommit(pkt, table=dvice.tablename, close=True)
+
+
 def publish_MKS972b(dvice, replies, db=None, broker=None):
     """
     Parse our MKS specific stuff; as defined in serComm:
 
-    reply is the "key" from devices.commandSet
+    reply is the "key" from devices.queryCommands
     replies[reply][0] is the bytes message
     replies[reply][1] is the timestamp
     """
@@ -70,6 +107,9 @@ def publish_MKS972b(dvice, replies, db=None, broker=None):
     xmlpkt = constructXMLPacket(dvice.instrument, dvice.devtype, fields,
                                 debug=True)
 
+    if broker is not None and xmlpkt is not None:
+        broker.publish(dvice.brokertopic, xmlpkt, debug=True)
+
     pkt = packetizer.makeInfluxPacket(meas,
                                       ts=None,
                                       tags=tags,
@@ -80,7 +120,7 @@ def publish_MKS972b(dvice, replies, db=None, broker=None):
         db.singleCommit(pkt, table=dvice.tablename, close=True)
 
 
-def queryAllDevices(config, idbs):
+def queryAllDevices(config, amqs, idbs):
     """
     """
     # Loop thru the different instrument sets
@@ -91,6 +131,12 @@ def queryAllDevices(config, idbs):
             dbObj = idbs[dvice.database]
         except KeyError:
             dbObj = None
+
+        # Now try to get our broker connection object
+        try:
+            bkObj = amqs[dvice.broker][0]
+        except KeyError:
+            bkObj = None
 
         # Go and get commands that are valid for the device
         msgs = devices.queryCommands(device=dvice.devtype)
@@ -106,9 +152,10 @@ def queryAllDevices(config, idbs):
 
         if reply is not None:
             if dvice.devtype.lower() == 'vactransducer_mks972b':
-                publish_MKS972b(dvice, reply, db=dbObj)
-            # elif dvice.type.lower() == 'sunpowergt':
-            #     ans = devices.parseSunpower(replies[reply][0])
+                publish_MKS972b(dvice, reply, db=dbObj, broker=bkObj)
+            elif dvice.devtype.lower() == 'sunpowergen1' or \
+                 dvice.devtype.lower() == 'sunpowergen2':
+                publish_Sunpower(dvice, reply, db=dbObj, broker=bkObj)
             # elif dvice.type.lower() == 'lakeshore218':
             #     # NOTE: Need to pass in the tag/key here
             #     #   because the LS doesn't echo commands.
