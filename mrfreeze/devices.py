@@ -45,7 +45,7 @@ def queryCommands(device="vactransducer_mks972b"):
                 "ColdCathode": cc,
                 "CMB3Digit": d3,
                 "CMB4Digit": d4}
-    elif device == "sunpowergt":
+    elif device == "sunpowergen1" or device == 'sunpowergen2':
         # 4800 baud
         # 8 data, 1 stop
         # no parity
