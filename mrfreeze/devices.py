@@ -16,7 +16,7 @@ Further description.
 from __future__ import division, print_function, absolute_import
 
 
-def commandSet(device="vactransducer_mks972b"):
+def queryCommands(device="vactransducer_mks972b"):
     """
     Set of specific command strings valid for specific devices.
     Specifically, these are good for:
@@ -105,36 +105,36 @@ def decode(reply):
     try:
         dr = reply.decode("utf-8")
     except Exception as err:
-        print("WTF?")
+        print("Couldn't decode this ... thing! %s" % (reply))
         print(str(err))
         dr = ''
 
     return dr
 
 
-def parseMKS(reply):
+def parseMKS(reply, debug=True):
     """
+    Expect replies to be in this form:
+
+    @<3 digit address><ACK|NAK><value|error code>;FF
     """
-    # Regular format:
-    #   @<3 digit address><ACK|NAK><value|error code>;FF
     dr = decode(reply)
 
     if dr != '':
         device = dr[1:4]
         status = dr[4:7]
         if status != 'ACK':
-            print("ERROR!!!!!")
+            print("WARNING: Reply status was not ACK!")
 
         val = dr.split(";FF")[0][7:]
         # In case it's a multiline response
         vals = val.split("\r")
 
-        print("Device %s responds %s: %s" % (device, status, vals))
+        if debug is True:
+            print("Device %s responds %s: %s" % (device, status, vals))
     else:
-        print("No response from device")
-
-    # Newline to seperate things while I'm debugging here
-    print()
+        if debug is True:
+            print("No response from device")
 
     return device, status, vals
 

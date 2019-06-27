@@ -66,12 +66,20 @@ def serWriter(ser, msg):
         print(str(err))
 
 
-def serComm(host, cmds, debug=False):
+def serComm(host, port, cmds, debug=False):
     """
+    WARNING: By using just a plain old "socket://" URL below, the connection
+    connection is NOT encrypted and NO authentication is supported!
+    Only use it in trusted environments.
+
+    If we want to use authentication and all that jazz, the box that
+    the device is plugged into at the DCT must be reconfigured!  Right now
+    they're all set up as TCP servers on each port rather than RFC2217 ports.
     """
     allreplies = {}
-    with serial.serial_for_url(host, write_timeout=2., timeout=2.) as ser:
-        if type(cmds) is dict:
+    hosturl = "socket://%s:%s" % (host, port)
+    with serial.serial_for_url(hosturl, write_timeout=2., timeout=2.) as ser:
+        if isinstance(cmds, dict):
             # NOTE: cmds should be a dict mapping a description to the
             #   actual command string that is sent. The description is
             #   used to tag the reply for later processing so make it good.
