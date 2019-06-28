@@ -47,6 +47,19 @@ def constructXMLPacket(instrument, devicetype, fields, debug=False):
     return xPacket
 
 
+def publish_LS218(dvice, replies, db=None, broker=None):
+    """
+    """
+    # NOTE: Need to pass in the tag/key here
+    #   because the LS doesn't echo commands.
+    #   No good way to determine response type
+    #   unless the overall structure here is
+    #   changed to parse the result immediately
+    #   on reply rather than doing all the comms
+    #   in one big chunk like we are right now.
+    devices.parseLakeShore(reply, replies[reply][0], modelnum=218)
+
+
 def publish_Sunpower(dvice, replies, db=None, broker=None):
     """
     Parse our Sunpower stuff; as defined in serComm:
@@ -64,19 +77,11 @@ def publish_Sunpower(dvice, replies, db=None, broker=None):
         ans = devices.parseSunpower(replies[reply][0])
 
         # Since we stored it as a dict with the command "key" we'll just
-        #   cut to the chase and just store the value that I know is a dict
+        #   cut to the chase and just store the value that I know is a dict.
+        # That'll make it way easier to make an influxdb packet because
+        #   fields will be flat.
         fieldval = ans.popitem()[1]
         fields.update(fieldval)
-
-        # These are already all dicts, so just shove them in
-        # if fieldname == "CoolerState":
-        #     fields.update({fieldname: ans['STATE']})
-        # elif fieldname == "ColdTip":
-        #     fields.update({fieldname: ans['TC']['ColdTipTemp']})
-        # elif fieldname == "PowerMeasured":
-        #     fields.update({fieldname: ans['P']['ActualPower']})
-        # elif fieldname == "PowerCommanded":
-        #     fields.update({fieldname: ans['E']['CommandedPower']})
 
     xmlpkt = constructXMLPacket(dvice.instrument, dvice.devtype, fields,
                                 debug=True)
@@ -136,6 +141,7 @@ def queryAllDevices(config, amqs, idbs):
     # Loop thru the different instrument sets
     for vice in config:
         dvice = config[vice]
+
         # Get our specific database connection object
         try:
             dbObj = idbs[dvice.database]
@@ -165,17 +171,8 @@ def queryAllDevices(config, amqs, idbs):
                 publish_MKS972b(dvice, reply, db=dbObj, broker=bkObj)
             elif dvice.devtype.lower() in ['sunpowergen1', 'sunpowergen2']:
                 publish_Sunpower(dvice, reply, db=dbObj, broker=bkObj)
-            # elif dvice.type.lower() == 'lakeshore218':
-            #     # NOTE: Need to pass in the tag/key here
-            #     #   because the LS doesn't echo commands.
-            #     #   No good way to determine response type
-            #     #   unless the overall structure here is
-            #     #   changed to parse the result immediately
-            #     #   on reply rather than doing all the comms
-            #     #   in one big chunk like we are right now.
-            #     devices.parseLakeShore(reply,
-            #                             replies[reply][0],
-            #                             modelnum=218)
+            elif dvice.type.lower() == 'lakeshore218':
+                publish_LS218(dvice, reply, db=dbObj, broker=bkObj)
             # elif dvice.type.lower() == 'lakeshore325':
             #     devices.parseLakeShore(reply,
             #                             replies[reply][0],
