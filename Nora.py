@@ -41,7 +41,7 @@ if __name__ == "__main__":
     amqlistener = mrfreeze.listener.MrFreezeCommandConsumer()
 
     # Interval between successive runs of the polling loop (seconds)
-    bigsleep = 600
+    bigsleep = 120
 
     # Total time for entire set of actions per instrument
     alarmtime = 600
