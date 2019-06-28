@@ -94,7 +94,7 @@ def publish_Sunpower(dvice, replies, db=None, broker=None):
     """
     # Since it's possible to have multiple of these on a single instrument
     #   (a la NIHTS) we use the extratag property if it was defined.
-    if dvice.extratag is not None:
+    if dvice.extratag is None:
         measname = "%s_%s" % (dvice.instrument, dvice.devtype)
     else:
         measname = "%s_%s_%s" % (dvice.instrument, dvice.devtype,
@@ -195,7 +195,5 @@ def queryAllDevices(config, amqs, idbs):
                 publish_Sunpower(dvice, reply, db=dbObj, broker=bkObj)
             elif dvice.devtype.lower() in ['lakeshore218', 'lakeshore325']:
                 publish_LSThing(dvice, reply, db=dbObj, broker=bkObj)
-            # elif dvice.type.lower() == 'lakeshore325':
-            #     devices.parseLakeShore(reply,
-            #                             replies[reply][0],
-            #                             modelnum=325)
+            elif dvice.devtype.lower() == 'arc-loisgettemp':
+                pass
