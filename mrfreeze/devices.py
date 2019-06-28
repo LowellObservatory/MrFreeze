@@ -71,7 +71,7 @@ def queryCommands(device="vactransducer_mks972b"):
         term = "\r\n"
         gettmp = "KRDG?" + term
 
-        cset = {"SourceTemps": gettmp}
+        cset = {"SensorTemps": gettmp}
     elif device == "lakeshore325":
         # 9600 baud, half duplex
         # 1 start, 7 data, 1 parity, 1 stop
@@ -88,10 +88,10 @@ def queryCommands(device="vactransducer_mks972b"):
         getsetB = "SETP? 2" + term
         gethtrB = "HTR? 2" + term
 
-        cset = {"SourceTempA": gettmpA,
+        cset = {"SensorTempA": gettmpA,
                 "SetpointA": getsetA,
                 "HeaterA": gethtrA,
-                "SourceTempB": gettmpB,
+                "SensorTempB": gettmpB,
                 "SetpointB": getsetB,
                 "HeaterB": gethtrB}
     else:
@@ -99,108 +99,3 @@ def queryCommands(device="vactransducer_mks972b"):
         cset = None
 
     return cset
-
-
-def decode(reply):
-    """
-    """
-    try:
-        dr = reply.decode("utf-8")
-    except Exception as err:
-        print("Couldn't decode this ... thing! %s" % (reply))
-        print(str(err))
-        dr = ''
-
-    return dr
-
-
-def parseMKS(reply, debug=True):
-    """
-    Expect replies to be in this form:
-
-    @<3 digit address><ACK|NAK><value|error code>;FF
-    """
-    dr = decode(reply)
-
-    if dr != '':
-        device = dr[1:4]
-        status = dr[4:7]
-        if status != 'ACK':
-            print("WARNING: Reply status was not ACK!")
-
-        val = dr.split(";FF")[0][7:]
-        # In case it's a multiline response
-        vals = val.split("\r")
-
-        if debug is True:
-            print("Device %s responds %s: %s" % (device, status, vals))
-    else:
-        if debug is True:
-            print("No response from device")
-
-    return device, status, vals
-
-
-def parseLakeShore(cmdtype, reply, modelnum=218):
-    """
-    The Lake Shore units don't echo the command back, so that's why we need
-    the commands in addition to the replies to parse things properly.
-    """
-    dr = decode(reply)
-
-    if dr != '':
-        if modelnum == 218:
-            if cmdtype.lower() == "sourcetemps":
-                finale = [float(v) for v in dr.strip().split(',')]
-            else:
-                print("Unknown LS218 Reply!")
-        elif modelnum == 325:
-            # All of the commands we defined above are single-shot/answer
-            #   commands, so just turn them into floats and move on.
-            finale = float(dr)
-        else:
-            print("Unknown Lake Shore Model Number!")
-
-        return {cmdtype: finale}
-
-
-def parseSunpower(reply):
-    """
-    """
-    splitter = "\r\n"
-    dr = decode(reply)
-    retthingy = {}
-
-    if dr != '':
-        # Split the response into its parts; skip the first line
-        #   since it's just a command echo but keep it for parse routing.
-        splits = dr.split(splitter)
-        cmd = splits[0]
-        # Last one is always '' because of the ending line termination
-        rep = splits[1:-1]
-
-        if cmd.lower() == "state":
-            # Multi-stage list comprehension since I can't figure out
-            #   how to do it all in one go....
-            alls = [v.split("=") for v in rep]
-            keys = [v[0].strip() for v in alls]
-            vals = [float(v[1]) for v in alls]
-
-            # Now combine the two into a more useful dict
-            finale = dict(zip(keys, vals))
-        elif cmd.lower() == "tc":
-            finale = {"ColdTipTemp": float(rep[0])}
-        elif cmd.lower() == "p":
-            finale = {"ActualPower": float(rep[0])}
-        elif cmd.lower() == "e":
-            keys = ["MaxPower", "MinPower", "CommandedPower"]
-            vals = [float(v) for v in rep]
-            finale = dict(zip(keys, vals))
-        else:
-            print("Unknown Sunpower Response!")
-            finale = None
-
-        # Put all of our parsing together
-        retthingy = {cmd: finale}
-
-    return retthingy

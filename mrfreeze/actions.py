@@ -23,10 +23,11 @@ import xmltodict as xmld
 from ligmos.utils import packetizer
 
 from . import devices
+from . import parsers
 from . import serialcomm as scomm
 
 
-def constructXMLPacket(instrument, devicetype, fields, debug=False):
+def constructXMLPacket(measurement, fields, debug=False):
     """
     fieldset should be a dict!
     """
@@ -37,7 +38,7 @@ def constructXMLPacket(instrument, devicetype, fields, debug=False):
     dPacket = OrderedDict()
     rootTag = "MrFreezeCommunique"
 
-    restOfStuff = {instrument: {devicetype: fields}}
+    restOfStuff = {measurement: fields}
 
     dPacket.update({rootTag: restOfStuff})
     xPacket = xmld.unparse(dPacket)
@@ -47,17 +48,40 @@ def constructXMLPacket(instrument, devicetype, fields, debug=False):
     return xPacket
 
 
-def publish_LS218(dvice, replies, db=None, broker=None):
+def publish_LSThing(dvice, replies, db=None, broker=None):
     """
     """
-    # NOTE: Need to pass in the tag/key here
-    #   because the LS doesn't echo commands.
-    #   No good way to determine response type
-    #   unless the overall structure here is
-    #   changed to parse the result immediately
-    #   on reply rather than doing all the comms
-    #   in one big chunk like we are right now.
-    devices.parseLakeShore(reply, replies[reply][0], modelnum=218)
+    # Check what kind of lakeshore thing we have here
+    lakeshorething = dvice.devtype.lower()
+    if lakeshorething == 'lakeshore218':
+        modelno = 218
+    elif lakeshorething == 'lakeshore325':
+        modelno = 325
+    else:
+        modelno = None
+
+    measname = "%s_%s" % (dvice.instrument, dvice.devtype)
+    meas = [measname]
+    tags = {"Device": dvice.devtype}
+    fields = {}
+    for reply in replies:
+        ans = parsers.parseLakeShore(reply, replies[reply][0],
+                                     modelnum=modelno)
+        fields.update(ans)
+
+    xmlpkt = constructXMLPacket(measname, fields, debug=True)
+
+    if broker is not None and xmlpkt is not None:
+        broker.publish(dvice.brokertopic, xmlpkt, debug=True)
+
+    pkt = packetizer.makeInfluxPacket(meas,
+                                      ts=None,
+                                      tags=tags,
+                                      fields=fields,
+                                      debug=True)
+
+    if db is not None and pkt is not None:
+        db.singleCommit(pkt, table=dvice.tablename, close=True)
 
 
 def publish_Sunpower(dvice, replies, db=None, broker=None):
@@ -68,23 +92,22 @@ def publish_Sunpower(dvice, replies, db=None, broker=None):
     replies[reply][0] is the bytes message
     replies[reply][1] is the timestamp
     """
-    # Make an InfluxDB packet
-    measname = "%s_cryo" % (dvice.instrument)
+    # Since it's possible to have multiple of these on a single instrument
+    #   (a la NIHTS) we use the extratag property if it was defined.
+    if dvice.extratag is not None:
+        measname = "%s_%s" % (dvice.instrument, dvice.devtype)
+    else:
+        measname = "%s_%s_%s" % (dvice.instrument, dvice.devtype,
+                                 dvice.extratag)
+
     meas = [measname]
     tags = {"Device": dvice.devtype}
     fields = {}
     for reply in replies:
-        ans = devices.parseSunpower(replies[reply][0])
+        ans = parsers.parseSunpower(replies[reply][0])
+        fields.update(ans)
 
-        # Since we stored it as a dict with the command "key" we'll just
-        #   cut to the chase and just store the value that I know is a dict.
-        # That'll make it way easier to make an influxdb packet because
-        #   fields will be flat.
-        fieldval = ans.popitem()[1]
-        fields.update(fieldval)
-
-    xmlpkt = constructXMLPacket(dvice.instrument, dvice.devtype, fields,
-                                debug=True)
+    xmlpkt = constructXMLPacket(measname, fields, debug=True)
 
     if broker is not None and xmlpkt is not None:
         broker.publish(dvice.brokertopic, xmlpkt, debug=True)
@@ -108,19 +131,18 @@ def publish_MKS972b(dvice, replies, db=None, broker=None):
     replies[reply][1] is the timestamp
     """
     # Make an InfluxDB packet
-    measname = "%s_vacuum" % (dvice.instrument)
+    measname = "%s_%s" % (dvice.instrument, dvice.devtype)
     meas = [measname]
     tags = {"Device": dvice.devtype}
     fields = {}
     for reply in replies:
-        d, s, v = devices.parseMKS(replies[reply][0])
+        d, s, v = parsers.parseMKS(replies[reply][0])
         # Check the command status (ACK == good)
         if s == 'ACK':
             fieldname = reply
             fields.update({fieldname: float(v[0])})
 
-    xmlpkt = constructXMLPacket(dvice.instrument, dvice.devtype, fields,
-                                debug=True)
+    xmlpkt = constructXMLPacket(measname, fields, debug=True)
 
     if broker is not None and xmlpkt is not None:
         broker.publish(dvice.brokertopic, xmlpkt, debug=True)
@@ -171,8 +193,8 @@ def queryAllDevices(config, amqs, idbs):
                 publish_MKS972b(dvice, reply, db=dbObj, broker=bkObj)
             elif dvice.devtype.lower() in ['sunpowergen1', 'sunpowergen2']:
                 publish_Sunpower(dvice, reply, db=dbObj, broker=bkObj)
-            elif dvice.type.lower() == 'lakeshore218':
-                publish_LS218(dvice, reply, db=dbObj, broker=bkObj)
+            elif dvice.devtype.lower() in ['lakeshore218', 'lakeshore325']:
+                publish_LSThing(dvice, reply, db=dbObj, broker=bkObj)
             # elif dvice.type.lower() == 'lakeshore325':
             #     devices.parseLakeShore(reply,
             #                             replies[reply][0],
