@@ -27,6 +27,8 @@ from stomp.listener import ConnectionListener
 
 from ligmos import utils
 
+from . import parsers
+
 
 class MrFreezeCommandConsumer(ConnectionListener):
     def __init__(self):
@@ -81,13 +83,15 @@ class MrFreezeCommandConsumer(ConnectionListener):
         cmddict = {}
         if badMsg is False:
             try:
-                if tname in ['MrFreeze.cmd']:
+                if tname == 'lig.MrFreeze.cmd':
                     # TODO: Wrap this in a proper try...except
                     #   As of right now, it'll be caught in the "WTF!!!"
                     schema = self.schemaDict[tname]
                     cmddict = parserCmdPacket(headers, body,
                                               schema=schema,
                                               debug=True)
+                elif tname == '':
+                    parsers.parseLOISTemps(headers, body)
                 else:
                     # Intended to be the endpoint of the auto-XML publisher
                     #   so I can catch most of them rather than explicitly

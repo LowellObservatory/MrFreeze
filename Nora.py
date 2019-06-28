@@ -32,8 +32,13 @@ if __name__ == "__main__":
     #   the worker constructor (toServeMan).
     devices = './mrfreeze.conf'
     deviceconf = classes.instrumentDeviceTarget
-    queue = './queue.conf'
+
+    # Nora is special! She has a broker queue, configured seperately
+    queue = './mrfreeze_queue.conf'
     queueconf = classes.brokerCommandingTarget
+    # Let's go ahead and get that parsed first
+
+
     passes = './passwords.conf'
     logfile = './mrfreeze_nora.log'
     desc = "Nora: Heart of the DCT Instrument Cooler Manager"
@@ -45,12 +50,6 @@ if __name__ == "__main__":
 
     # Total time for entire set of actions per instrument
     alarmtime = 600
-
-    # MUY IMPORTANTE
-    #   If you want to generate the file needed for LOIS compatability
-    #   for NIHTS (/home/obsnihts/cooler/coolerupf.current) IN ADDITION TO
-    #   the broker publishing path, set this to True.
-    loiscompat = True
 
     # config: dictionary of parsed config file
     # comm: common block from config file
@@ -91,7 +90,8 @@ if __name__ == "__main__":
                 amqs = amq.checkConnections(amqs, subscribe=True)
 
                 print("Doing some sort of loop ...")
-                mrfreeze.actions.queryAllDevices(config, amqs, idbs, debug=True)
+                mrfreeze.actions.queryAllDevices(config, amqs, idbs,
+                                                 debug=True)
 
                 print("Done stuff!")
 
