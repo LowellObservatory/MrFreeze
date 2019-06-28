@@ -60,8 +60,8 @@ def queryCommands(device="vactransducer_mks972b"):
 
         cset = {"CoolerState": cstate,
                 "ColdTip": getctt,
-                "RealPower": getmpr,
-                "CalcPower": getcpr}
+                "PowerMeasured": getmpr,
+                "PowerCommanded": getcpr}
     elif device == "lakeshore218":
         # 9600 baud, half duplex
         # 1 start, 7 data, 1 parity, 1 stop
@@ -169,6 +169,7 @@ def parseSunpower(reply):
     """
     splitter = "\r\n"
     dr = decode(reply)
+    retthingy = {}
 
     if dr != '':
         # Split the response into its parts; skip the first line
@@ -199,4 +200,7 @@ def parseSunpower(reply):
             print("Unknown Sunpower Response!")
             finale = None
 
-        return {cmd: finale}
+        # Put all of our parsing together
+        retthingy = {cmd: finale}
+
+    return retthingy

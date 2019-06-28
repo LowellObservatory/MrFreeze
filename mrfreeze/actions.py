@@ -63,25 +63,35 @@ def publish_Sunpower(dvice, replies, db=None, broker=None):
     for reply in replies:
         ans = devices.parseSunpower(replies[reply][0])
 
-    #     # Check the command status (ACK == good)
-    #     if s == 'ACK':
-    #         fieldname = reply
-    #         fields.update({fieldname: float(v[0])})
+        # Since we stored it as a dict with the command "key" we'll just
+        #   cut to the chase and just store the value that I know is a dict
+        fieldval = ans.popitem()[1]
+        fields.update(fieldval)
 
-    # xmlpkt = constructXMLPacket(dvice.instrument, dvice.devtype, fields,
-    #                             debug=True)
+        # These are already all dicts, so just shove them in
+        # if fieldname == "CoolerState":
+        #     fields.update({fieldname: ans['STATE']})
+        # elif fieldname == "ColdTip":
+        #     fields.update({fieldname: ans['TC']['ColdTipTemp']})
+        # elif fieldname == "PowerMeasured":
+        #     fields.update({fieldname: ans['P']['ActualPower']})
+        # elif fieldname == "PowerCommanded":
+        #     fields.update({fieldname: ans['E']['CommandedPower']})
 
-    # if broker is not None and xmlpkt is not None:
-    #     broker.publish(dvice.brokertopic, xmlpkt, debug=True)
+    xmlpkt = constructXMLPacket(dvice.instrument, dvice.devtype, fields,
+                                debug=True)
 
-    # pkt = packetizer.makeInfluxPacket(meas,
-    #                                   ts=None,
-    #                                   tags=tags,
-    #                                   fields=fields,
-    #                                   debug=True)
+    if broker is not None and xmlpkt is not None:
+        broker.publish(dvice.brokertopic, xmlpkt, debug=True)
 
-    # if db is not None and pkt is not None:
-    #     db.singleCommit(pkt, table=dvice.tablename, close=True)
+    pkt = packetizer.makeInfluxPacket(meas,
+                                      ts=None,
+                                      tags=tags,
+                                      fields=fields,
+                                      debug=True)
+
+    if db is not None and pkt is not None:
+        db.singleCommit(pkt, table=dvice.tablename, close=True)
 
 
 def publish_MKS972b(dvice, replies, db=None, broker=None):
@@ -153,8 +163,7 @@ def queryAllDevices(config, amqs, idbs):
         if reply is not None:
             if dvice.devtype.lower() == 'vactransducer_mks972b':
                 publish_MKS972b(dvice, reply, db=dbObj, broker=bkObj)
-            elif dvice.devtype.lower() == 'sunpowergen1' or \
-                 dvice.devtype.lower() == 'sunpowergen2':
+            elif dvice.devtype.lower() in ['sunpowergen1', 'sunpowergen2']:
                 publish_Sunpower(dvice, reply, db=dbObj, broker=bkObj)
             # elif dvice.type.lower() == 'lakeshore218':
             #     # NOTE: Need to pass in the tag/key here
