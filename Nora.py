@@ -91,7 +91,7 @@ if __name__ == "__main__":
                 amqs = amq.checkConnections(amqs, subscribe=True)
 
                 print("Doing some sort of loop ...")
-                mrfreeze.actions.queryAllDevices(config, amqs, idbs)
+                mrfreeze.actions.queryAllDevices(config, amqs, idbs, debug=True)
 
                 print("Done stuff!")
 

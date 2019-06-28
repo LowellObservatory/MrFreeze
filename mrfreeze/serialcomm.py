@@ -88,6 +88,7 @@ def serComm(host, port, cmds, debug=False):
                 serWriter(ser, msg)
                 # Get the time right after we sent the message
                 t = dt.datetime.utcnow()
+                # print(t.strptime("%Y-%m-%dT%H:%M:%S.%f UTC"))
 
                 # Get the answer; it'll take timeout seconds to return
                 byteReply = read_all(ser)

@@ -13,6 +13,7 @@
 
 from __future__ import division, print_function, absolute_import
 
+import datetime as dt
 from collections import OrderedDict
 
 import xmltodict as xmld
@@ -44,15 +45,35 @@ def constructXMLPacket(measurement, fields, debug=False):
     return xPacket
 
 
-def makeAndPublishAMQ(measname, fields, broker, topic, debug=False):
+def makeAndPublishAMQ(measname, fields, ts, broker, topic, debug=False):
     """
     Since I repeat this ad-nauseum I figured I'd break it out
+
+    measname should be a string, but if it's a list the first entry will be
+      automagically grabbed for you
+
+    fields should be a (flat!!) dict
+
+    ts should be a datetime object
     """
     # Since I combined everything, measname will probably be a list at this
     #   point because the influxdb packetizer requires one; take a quick
     #   and dirty shortcut to get the actual string we need for the XML packet
     if isinstance(measname, list):
         measname = measname[0]
+
+    if ts is None:
+        # Don't know why this would happen, but it seems prudent to just
+        #   take care of it if it ever does
+        ts = dt.datetime.utcnow()
+        print("WARNING: Passed in an EMPTY timestamp!")
+
+    # Stuff in our timestamp manually. Since a dict is mutable, this will
+    #   filter back down to the caller and it'll appear there too.  That's fine
+    #   and it keeps me from having to duplicate all of this in each
+    #   publishing function :)
+    tsstr = ts.strftime("%Y-%m-%dT%H:%M:%S.%f")
+    fields.update({"TimestampUTC": tsstr})
 
     xmlpkt = constructXMLPacket(measname, fields, debug=debug)
 
@@ -96,8 +117,10 @@ def publish_LSThing(dvice, replies, db=None, broker=None, debug=False):
         ans = parsers.parseLakeShore(reply, replies[reply][0],
                                      modelnum=modelno)
         fields.update(ans)
+        lastTS = replies[reply][1]
 
-    makeAndPublishAMQ(measname, fields, broker, dvice.brokertopic, debug=debug)
+    makeAndPublishAMQ(measname, fields, lastTS, broker, dvice.brokertopic,
+                      debug=debug)
     makeAndPublishIDB(measname, fields, db, tags, dvice.tablename, debug=debug)
 
 
@@ -120,11 +143,15 @@ def publish_Sunpower(dvice, replies, db=None, broker=None, debug=False):
     measname = [measname]
     tags = {"Device": dvice.devtype}
     fields = {}
+
+    lastTS = None
     for reply in replies:
         ans = parsers.parseSunpower(replies[reply][0])
         fields.update(ans)
+        lastTS = replies[reply][1]
 
-    makeAndPublishAMQ(measname, fields, broker, dvice.brokertopic, debug=debug)
+    makeAndPublishAMQ(measname, fields, lastTS, broker, dvice.brokertopic,
+                      debug=debug)
     makeAndPublishIDB(measname, fields, db, tags, dvice.tablename, debug=debug)
 
 
@@ -146,6 +173,8 @@ def publish_MKS972b(dvice, replies, db=None, broker=None, debug=False):
         if s == 'ACK':
             fieldname = reply
             fields.update({fieldname: float(v[0])})
+            lastTS = replies[reply][1]
 
-    makeAndPublishAMQ(measname, fields, broker, dvice.brokertopic, debug=debug)
+    makeAndPublishAMQ(measname, fields, lastTS, broker, dvice.brokertopic,
+                      debug=debug)
     makeAndPublishIDB(measname, fields, db, tags, dvice.tablename, debug=debug)

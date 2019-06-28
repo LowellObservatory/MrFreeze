@@ -22,7 +22,7 @@ from . import publishers as pubs
 from . import serialcomm as scomm
 
 
-def queryAllDevices(config, amqs, idbs):
+def queryAllDevices(config, amqs, idbs, debug=False):
     """
     """
     # Loop thru the different instrument sets
@@ -47,7 +47,7 @@ def queryAllDevices(config, amqs, idbs):
         # Now send the commands
         try:
             reply = scomm.serComm(dvice.devhost, dvice.devport,
-                                  msgs, debug=True)
+                                  msgs, debug=debug)
         except serial.SerialException as err:
             print("Badness 10000")
             print(str(err))
@@ -56,11 +56,17 @@ def queryAllDevices(config, amqs, idbs):
         try:
             if reply is not None:
                 if dvice.devtype.lower() == 'vactransducer_mks972b':
-                    pubs.publish_MKS972b(dvice, reply, db=dbObj, broker=bkObj)
+                    pubs.publish_MKS972b(dvice, reply,
+                                         db=dbObj, broker=bkObj,
+                                         debug=debug)
                 elif dvice.devtype.lower() in ['sunpowergen1', 'sunpowergen2']:
-                    pubs.publish_Sunpower(dvice, reply, db=dbObj, broker=bkObj)
+                    pubs.publish_Sunpower(dvice, reply,
+                                          db=dbObj, broker=bkObj,
+                                          debug=debug)
                 elif dvice.devtype.lower() in ['lakeshore218', 'lakeshore325']:
-                    pubs.publish_LSThing(dvice, reply, db=dbObj, broker=bkObj)
+                    pubs.publish_LSThing(dvice, reply,
+                                         db=dbObj, broker=bkObj,
+                                         debug=debug)
                 elif dvice.devtype.lower() == 'arc-loisgettemp':
                     pass
         except Exception as err:
