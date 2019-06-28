@@ -44,7 +44,35 @@ def constructXMLPacket(measurement, fields, debug=False):
     return xPacket
 
 
-def publish_LSThing(dvice, replies, db=None, broker=None):
+def makeAndPublishAMQ(measname, fields, broker, topic, debug=False):
+    """
+    Since I repeat this ad-nauseum I figured I'd break it out
+    """
+    # Since I combined everything, measname will probably be a list at this
+    #   point because the influxdb packetizer requires one; take a quick
+    #   and dirty shortcut to get the actual string we need for the XML packet
+    if isinstance(measname, list):
+        measname = measname[0]
+
+    xmlpkt = constructXMLPacket(measname, fields, debug=debug)
+
+    if broker is not None and xmlpkt is not None:
+        broker.publish(topic, xmlpkt, debug=True)
+
+
+def makeAndPublishIDB(measname, fields, db, tags, table, debug=False):
+    """
+    Same as above! Often repeated so now it's a function
+    """
+    pkt = packetizer.makeInfluxPacket(measname, ts=None,
+                                      tags=tags, fields=fields,
+                                      debug=debug)
+
+    if db is not None and pkt is not None:
+        db.singleCommit(pkt, table=table, close=True)
+
+
+def publish_LSThing(dvice, replies, db=None, broker=None, debug=False):
     """
     as defined in serComm:
 
@@ -61,8 +89,7 @@ def publish_LSThing(dvice, replies, db=None, broker=None):
     else:
         modelno = None
 
-    measname = "%s_%s" % (dvice.instrument, dvice.devtype)
-    meas = [measname]
+    measname = ["%s_%s" % (dvice.instrument, dvice.devtype)]
     tags = {"Device": dvice.devtype}
     fields = {}
     for reply in replies:
@@ -70,22 +97,11 @@ def publish_LSThing(dvice, replies, db=None, broker=None):
                                      modelnum=modelno)
         fields.update(ans)
 
-    xmlpkt = constructXMLPacket(measname, fields, debug=True)
-
-    if broker is not None and xmlpkt is not None:
-        broker.publish(dvice.brokertopic, xmlpkt, debug=True)
-
-    pkt = packetizer.makeInfluxPacket(meas,
-                                      ts=None,
-                                      tags=tags,
-                                      fields=fields,
-                                      debug=True)
-
-    if db is not None and pkt is not None:
-        db.singleCommit(pkt, table=dvice.tablename, close=True)
+    makeAndPublishAMQ(measname, fields, broker, dvice.brokertopic, debug=debug)
+    makeAndPublishIDB(measname, fields, db, tags, dvice.tablename, debug=debug)
 
 
-def publish_Sunpower(dvice, replies, db=None, broker=None):
+def publish_Sunpower(dvice, replies, db=None, broker=None, debug=False):
     """
     Parse our Sunpower stuff; as defined in serComm:
 
@@ -101,29 +117,18 @@ def publish_Sunpower(dvice, replies, db=None, broker=None):
         measname = "%s_%s_%s" % (dvice.instrument, dvice.devtype,
                                  dvice.extratag)
 
-    meas = [measname]
+    measname = [measname]
     tags = {"Device": dvice.devtype}
     fields = {}
     for reply in replies:
         ans = parsers.parseSunpower(replies[reply][0])
         fields.update(ans)
 
-    xmlpkt = constructXMLPacket(measname, fields, debug=True)
-
-    if broker is not None and xmlpkt is not None:
-        broker.publish(dvice.brokertopic, xmlpkt, debug=True)
-
-    pkt = packetizer.makeInfluxPacket(meas,
-                                      ts=None,
-                                      tags=tags,
-                                      fields=fields,
-                                      debug=True)
-
-    if db is not None and pkt is not None:
-        db.singleCommit(pkt, table=dvice.tablename, close=True)
+    makeAndPublishAMQ(measname, fields, broker, dvice.brokertopic, debug=debug)
+    makeAndPublishIDB(measname, fields, db, tags, dvice.tablename, debug=debug)
 
 
-def publish_MKS972b(dvice, replies, db=None, broker=None):
+def publish_MKS972b(dvice, replies, db=None, broker=None, debug=False):
     """
     Parse our MKS specific stuff; as defined in serComm:
 
@@ -132,8 +137,7 @@ def publish_MKS972b(dvice, replies, db=None, broker=None):
     replies[reply][1] is the timestamp
     """
     # Make an InfluxDB packet
-    measname = "%s_%s" % (dvice.instrument, dvice.devtype)
-    meas = [measname]
+    measname = ["%s_%s" % (dvice.instrument, dvice.devtype)]
     tags = {"Device": dvice.devtype}
     fields = {}
     for reply in replies:
@@ -143,16 +147,5 @@ def publish_MKS972b(dvice, replies, db=None, broker=None):
             fieldname = reply
             fields.update({fieldname: float(v[0])})
 
-    xmlpkt = constructXMLPacket(measname, fields, debug=True)
-
-    if broker is not None and xmlpkt is not None:
-        broker.publish(dvice.brokertopic, xmlpkt, debug=True)
-
-    pkt = packetizer.makeInfluxPacket(meas,
-                                      ts=None,
-                                      tags=tags,
-                                      fields=fields,
-                                      debug=True)
-
-    if db is not None and pkt is not None:
-        db.singleCommit(pkt, table=dvice.tablename, close=True)
+    makeAndPublishAMQ(measname, fields, broker, dvice.brokertopic, debug=debug)
+    makeAndPublishIDB(measname, fields, db, tags, dvice.tablename, debug=debug)
