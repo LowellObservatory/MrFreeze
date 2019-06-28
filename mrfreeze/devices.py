@@ -47,7 +47,22 @@ def queryCommands(device="vactransducer_mks972b"):
                 "ColdCathode": cc,
                 "CMB3Digit": d3,
                 "CMB4Digit": d4}
-    elif device == "sunpowergen1" or device == 'sunpowergen2':
+    elif device == "sunpowergen1":
+        # NOTE A Gen 1 controller has less functionality than the Gen 2.
+        #   Specifically, there's no way to get the actual/measured power!
+        # 4800 baud
+        # 8 data, 1 stop
+        # no parity
+        # CR line termination
+        term = "\r"
+        getctt = "TC" + term
+        gettar = "SET TTARGET" + term
+        getcpr = "E" + term
+
+        cset = {"ColdTip": getctt,
+                "TargetTemp": gettar,
+                "PowerCommanded": getcpr}
+    elif device == "sunpowergen2":
         # 4800 baud
         # 8 data, 1 stop
         # no parity

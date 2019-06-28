@@ -118,6 +118,8 @@ def parseSunpower(reply):
             keys = ["MaxPower", "MinPower", "CommandedPower"]
             vals = [float(v) for v in rep]
             finale = dict(zip(keys, vals))
+        elif cmd.lower() == "set ttarget":
+            finale = {"TargetTemp": float(rep[0])}
         else:
             print("Unknown Sunpower Response!")
 
