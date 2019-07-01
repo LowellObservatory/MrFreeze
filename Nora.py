@@ -33,12 +33,6 @@ if __name__ == "__main__":
     devices = './mrfreeze.conf'
     deviceconf = classes.instrumentDeviceTarget
 
-    # Nora is special! She has a broker queue, configured seperately
-    queue = './mrfreeze_queue.conf'
-    queueconf = classes.brokerCommandingTarget
-    # Let's go ahead and get that parsed first
-
-
     passes = './passwords.conf'
     logfile = './mrfreeze_nora.log'
     desc = "Nora: Heart of the DCT Instrument Cooler Manager"
