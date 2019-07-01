@@ -38,7 +38,7 @@ if __name__ == "__main__":
     eargs = None
 
     # Interval between successive runs of the polling loop (seconds)
-    bigsleep = 120
+    bigsleep = 60
 
     # Total time for entire set of actions per instrument
     alarmtime = 600
@@ -53,7 +53,7 @@ if __name__ == "__main__":
                                                         desc=desc,
                                                         extraargs=eargs,
                                                         conftype=deviceconf,
-                                                        logfile=False)
+                                                        logfile=True)
 
     try:
         with PidFile(pidname=mynameis.lower(), piddir=pidpath) as p:
