@@ -161,12 +161,8 @@ def parseLOISTemps(hed, msg):
     #   this is so we can operate fully on the full message string
     logmsg = " ".join(msg.split(":")[3:]).strip()
 
-    # # Set the stage for our eventual influxdb packet
-    # meas = ['InstrumentTelemetry']
-    # tags = {'name': topic.split(".")[1]}
-
     fields = {}
-    if loglevel in ("Level_5", "Level_4"):
+    if loglevel in ["Level_5", "Level_4"]:
         if logmsg.startswith("CCD sensor adus"):
             # print("Parsing: %s" % (logmsg))
             # CCD sensor adus temp1 2248 temp2 3329 set1 2249 heat1 2016'

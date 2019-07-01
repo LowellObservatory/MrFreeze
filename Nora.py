@@ -32,12 +32,10 @@ if __name__ == "__main__":
     #   the worker constructor (toServeMan).
     devices = './mrfreeze.conf'
     deviceconf = classes.instrumentDeviceTarget
-
     passes = './passwords.conf'
     logfile = './mrfreeze_nora.log'
     desc = "Nora: Heart of the DCT Instrument Cooler Manager"
     eargs = None
-    amqlistener = mrfreeze.listener.MrFreezeCommandConsumer()
 
     # Interval between successive runs of the polling loop (seconds)
     bigsleep = 120
@@ -66,6 +64,10 @@ if __name__ == "__main__":
             # Check to see if there are any connections/objects to establish
             idbs = connSetup.connIDB(comm)
 
+            # UGH more hardcoding. Someone more clever than I can clean up.
+            db = idbs['database-dct']
+            amqlistener = mrfreeze.listener.MrFreezeCommandConsumer(db=db)
+
             # Specify our custom listener that will really do all the work
             #   Since we're hardcoding for the DCTConsumer anyways, I'll take
             #   a bit shortcut and hardcode for the DCT influx database.
@@ -77,6 +79,7 @@ if __name__ == "__main__":
 
             # Just hardcode this for now. It's a prototype!
             conn = amqs['broker-dct'][0]
+            queue = comm['queue-mrfreeze']
 
             # Semi-infinite loop
             while runner.halt is False:

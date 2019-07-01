@@ -28,16 +28,20 @@ from stomp.listener import ConnectionListener
 from ligmos import utils
 
 from . import parsers
+from . import publishers
 
 
 class MrFreezeCommandConsumer(ConnectionListener):
-    def __init__(self):
+    def __init__(self, db=None):
         """
         This is just to route the messages to the right parsers
         """
         # Grab all the schemas that are in the ligmos library
         self.schemaDict = utils.amq.schemaDicter()
         self.brokerQueue = OrderedDict()
+
+        # This assumes that the database object was set up elsewhere
+        self.db = db
 
     def on_message(self, headers, body):
         """
@@ -90,8 +94,25 @@ class MrFreezeCommandConsumer(ConnectionListener):
                     cmddict = parserCmdPacket(headers, body,
                                               schema=schema,
                                               debug=True)
-                elif tname == '':
-                    parsers.parseLOISTemps(headers, body)
+                elif tname.endswith("loisLog"):
+                    tfields = parsers.parseLOISTemps(headers, body)
+                    # A little bit of hackish because it's already ugly
+                    #   I HATE THAT THESE ARE HARDCODED BUT IT'S FASTER
+                    #   AND MAYBE LOIS WILL GO AWAY SOON SO I CAN DITCH THIS.
+                    # I couldn't figure out a quick way to get the config
+                    #   sections into here, but probably could with more effort
+                    table = "MrFreeze"
+                    tags = {"Device": "arc-loisgettemp"}
+                    if 'lemi' in tname.lower():
+                        meas = ["LMI_arc-loisgettemp"]
+                    elif 'deveny' in tname.lower():
+                        meas = ["DeVeny_arc-loisgettemp"]
+
+                    # Only store the packet if we actually have fields that
+                    #   were successfully parsed
+                    if tfields != {}:
+                        publishers.makeAndPublishIDB(meas, tfields, self.db,
+                                                     tags, table, debug=True)
                 else:
                     # Intended to be the endpoint of the auto-XML publisher
                     #   so I can catch most of them rather than explicitly
