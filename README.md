@@ -1,0 +1,2 @@
+# MrFreeze
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/365de20c482644e6a923ae0f9b92521b)](https://app.codacy.com/app/astrobokonon/MrFreeze?utm_source=github.com&utm_medium=referral&utm_content=LowellObservatory/MrFreeze&utm_campaign=Badge_Grade_Dashboard)
