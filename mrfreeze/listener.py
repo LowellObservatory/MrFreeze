@@ -15,13 +15,11 @@ Further description.
 
 from __future__ import division, print_function, absolute_import
 
-import os
 import copy
 import uuid
-from collections import OrderedDict, MutableMapping
+from collections import OrderedDict
 
 import xmltodict as xmld
-import xmlschema as xmls
 
 from stomp.listener import ConnectionListener
 
@@ -91,9 +89,9 @@ class MrFreezeCommandConsumer(ConnectionListener):
                     # TODO: Wrap this in a proper try...except
                     #   As of right now, it'll be caught in the "WTF!!!"
                     schema = self.schemaDict[tname]
-                    cmddict = parserCmdPacket(headers, body,
-                                              schema=schema,
-                                              debug=True)
+                    cmddict = parsers.parserCmdPacket(headers, body,
+                                                      schema=schema,
+                                                      debug=True)
                 elif tname.endswith("loisLog"):
                     tfields = parsers.parseLOISTemps(headers, body)
                     # A little bit of hackish because it's already ugly
@@ -154,84 +152,3 @@ class MrFreezeCommandConsumer(ConnectionListener):
                 newactions.append(action)
 
         return newactions
-
-
-def parserCmdPacket(hed, msg, schema=None, debug=False):
-    """
-    """
-    # print(msg)
-    # This is really the topic name, so we'll make that the measurement name
-    #   for the sake of clarity. It NEEDS to be a list until I fix packetizer!
-    meas = [os.path.basename(hed['destination'])]
-
-    # Bail if there's a schema not found; needs expansion here
-    if schema is None:
-        print("No schema found for topic %s!" % (meas[0]))
-        return None
-
-    # In this house, we only store valid packets!
-    good = schema.is_valid(msg)
-
-    # A DIRTY DIRTY HACK
-    try:
-        xmlp = schema.to_dict(msg, decimal_type=float, validation='lax')
-        # print(xmlp)
-        good = True
-    except xmls.XMLSchemaValidationError:
-        good = False
-
-    fields = {}
-    if good is True:
-        # print("Packet good!")
-        try:
-            xmlp = schema.to_dict(msg, decimal_type=float, validation='lax')
-            # I HATE THIS
-            if isinstance(xmlp, tuple):
-                xmlp = xmlp[0]
-
-            # Back to normal.
-            keys = xmlp.keys()
-
-            # Store each key:value pairing
-            for each in keys:
-                val = xmlp[each]
-
-                # TESTING
-                if isinstance(val, dict):
-                    flatVals = flatten(val, parent_key=each)
-                    fields.update(flatVals)
-                else:
-                    fields.update({each: val})
-
-            if fields is not None:
-                # do something ... ?
-                pass
-        except xmls.XMLSchemaDecodeError as err:
-            print(err.message.strip())
-            print(err.reason.strip())
-
-        # Added for itteratively testing parsed packets outside of the
-        #   usual operational mode (like in toymodels/PacketSchemer)
-        if debug is True:
-            print("Parsed packet: ", fields)
-
-    return fields
-
-
-def flatten(d, parent_key='', sep='_'):
-    """
-    Thankfully StackOverflow exists because I'm too tired to write out this
-    logic myself and now I can just use this:
-    https://stackoverflow.com/a/6027615
-    With thanks to:
-    https://stackoverflow.com/users/1897/imran
-    https://stackoverflow.com/users/1645874/mythsmith
-    """
-    items = []
-    for k, v in d.items():
-        new_key = parent_key + sep + k if parent_key else k
-        if isinstance(v, MutableMapping):
-            items.extend(flatten(v, new_key, sep=sep).items())
-        else:
-            items.append((new_key, v))
-    return dict(items)
