@@ -17,8 +17,8 @@ import time
 from pid import PidFile, PidFileError
 
 import mrfreeze
-from ligmos.utils import amq, common, classes
 from ligmos.workers import workerSetup, connSetup
+from ligmos.utils import amq, common, classes, confparsers
 
 
 if __name__ == "__main__":
@@ -30,9 +30,9 @@ if __name__ == "__main__":
 
     # Define the default files we'll use/look for. These are passed to
     #   the worker constructor (toServeMan).
-    devices = './mrfreeze.conf'
+    devices = './config/mrfreeze.conf'
     deviceconf = classes.instrumentDeviceTarget
-    passes = './passwords.conf'
+    passes = './config/passwords.conf'
     logfile = './mrfreeze_nora.log'
     desc = "Nora: Heart of the DCT Instrument Cooler Manager"
     eargs = None
@@ -53,7 +53,10 @@ if __name__ == "__main__":
                                                         desc=desc,
                                                         extraargs=eargs,
                                                         conftype=deviceconf,
-                                                        logfile=True)
+                                                        logfile=False)
+
+    # Reorganize the configuration to be per-instrument
+    perInst = confparsers.regroupConfig(config, groupKey='instrument')
 
     try:
         with PidFile(pidname=mynameis.lower(), piddir=pidpath) as p:
@@ -87,8 +90,10 @@ if __name__ == "__main__":
                 amqs = amq.checkConnections(amqs, subscribe=True)
 
                 print("Doing some sort of loop ...")
-                mrfreeze.actions.queryAllDevices(config, amqs, idbs,
-                                                 debug=True)
+                for inst in perInst:
+                    print("Processing instrument %s" % (inst))
+                    mrfreeze.actions.queryAllDevices(perInst[inst], amqs, idbs,
+                                                     debug=True)
 
                 print("Done stuff!")
 

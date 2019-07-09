@@ -18,7 +18,7 @@ from __future__ import division, print_function, absolute_import
 import os
 
 from ligmos.workers import workerSetup
-from ligmos.utils import amq, common, classes
+from ligmos.utils import amq, common, classes, confparsers
 
 
 # Define the default files we'll use/look for. These are passed to
@@ -48,22 +48,6 @@ config, comm, args, runner = workerSetup.toServeMan(mynameis, devices,
 
 # Reorganize the configuration to be per-instrument
 groupKey = 'instrument'
-perInst = {}
-for csect in config:
-    try:
-        inst = getattr(config[csect], groupKey)
-        inst = inst.lower()
-        print(inst, csect)
-    except AttributeError:
-        inst = None
-
-    if inst is not None:
-        # Does this instrument already exist in our final dict?
-        if inst in perInst.keys():
-            iDevices = perInst[inst]
-        else:
-            iDevices = {}
-        iDevices.update({csect: config[csect]})
-        perInst.update({inst: iDevices})
+perInst = confparsers.regroupConfig(config, groupKey=groupKey)
 
 print(perInst)
