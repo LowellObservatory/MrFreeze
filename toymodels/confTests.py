@@ -15,18 +15,55 @@ Further description.
 
 from __future__ import division, print_function, absolute_import
 
-import ligmos
+import os
+
+from ligmos.workers import workerSetup
+from ligmos.utils import amq, common, classes
 
 
-confps = ligmos.utils.confparsers
-cfile = "./mrfreeze.conf"
-ctype = ligmos.utils.common.deviceTarget
+# Define the default files we'll use/look for. These are passed to
+#   the worker constructor (toServeMan).
+devices = './mrfreeze.conf'
+deviceconf = classes.instrumentDeviceTarget
+passes = './passwords.conf'
+logfile = './mrfreeze_nora.log'
+desc = "Nora: Heart of the DCT Instrument Cooler Manager"
+eargs = None
 
-idict, commconfig = confps.getActiveConfiguration(cfile,
-                                                  conftype=ctype,
-                                                  debug=True)
+mynameis = os.path.basename(__file__)
+if mynameis.endswith('.py'):
+    mynameis = mynameis[:-3]
 
-for each in idict:
-    inst = idict[each]
-    print(inst.name)
-    print(inst.__dict__)
+# config: dictionary of parsed config file
+# comm: common block from config file
+# args: parsed options
+# runner: class that contains logic to quit nicely
+config, comm, args, runner = workerSetup.toServeMan(mynameis, devices,
+                                                    passes,
+                                                    logfile,
+                                                    desc=desc,
+                                                    extraargs=eargs,
+                                                    conftype=deviceconf,
+                                                    logfile=False)
+
+# Reorganize the configuration to be per-instrument
+groupKey = 'instrument'
+perInst = {}
+for csect in config:
+    try:
+        inst = getattr(config[csect], groupKey)
+        inst = inst.lower()
+        print(inst, csect)
+    except AttributeError:
+        inst = None
+
+    if inst is not None:
+        # Does this instrument already exist in our final dict?
+        if inst in perInst.keys():
+            iDevices = perInst[inst]
+        else:
+            iDevices = {}
+        iDevices.update({csect: config[csect]})
+        perInst.update({inst: iDevices})
+
+print(perInst)

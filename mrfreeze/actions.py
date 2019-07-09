@@ -89,3 +89,29 @@ def queryAllDevices(config, amqs, idbs, debug=False):
             except Exception as err:
                 print("Unable to parse instrument response!")
                 print(str(err))
+
+
+def regroupConfig(config, groupKey='instrument'):
+    """
+    """
+    # Reorganize the configuration to be per-instrument
+    perInst = {}
+    for csect in config:
+        try:
+            inst = getattr(config[csect], groupKey)
+            inst = inst.lower()
+            print(inst, csect)
+        except AttributeError:
+            inst = None
+
+        if inst is not None:
+            # Does this instrument already exist in our final dict?
+            #   If so, grab all of the defined devices so far
+            if inst in perInst.keys():
+                iDevices = perInst[inst]
+            else:
+                iDevices = {}
+            iDevices.update({csect: config[csect]})
+            perInst.update({inst: iDevices})
+
+    return perInst
