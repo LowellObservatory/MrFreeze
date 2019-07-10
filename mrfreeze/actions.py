@@ -61,7 +61,7 @@ def queryAllDevices(config, amqs, idbs, debug=False):
             bkObj.publish(dvice.devbrokercmd, cmd)
         else:
             # Go and get commands that are valid for the device
-            msgs = devices.queryCommands(device=dvice.devtype)
+            msgs = devices.defaultQueryCommands(device=dvice.devtype)
 
             # Now send the commands
             try:

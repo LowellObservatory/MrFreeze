@@ -25,9 +25,14 @@ def allCommands(device=None):
     Sunpower CryoTel-style coolers
     Lake Shore 325, 218
 
-    cset should be a dictionary mapping a readable description of a param
-    to the actual serial command needed to get it.  Parsing the result
-    occurs elsewhere.
+    cset should be a dictionary mapping a semi-readable key to the
+    actual serial command for the particular device.
+    Parsing the result occurs elsewhere.
+
+    The command terminator is *returned* and needs to be combined with
+    the values in cset before use; that allows somewhat easier adjustments
+    of commands that pull double-duty, such as 'SET TTARGET' for the Sunpower
+    Cryotel units as well as the Lake Shore devices.
     """
 
     if device == "vactransducer_mks972b":
@@ -38,10 +43,10 @@ def allCommands(device=None):
         # no parity
         # ';FF' termination
         term = ";FF"
-        mp = "@254PR1?" + term
-        cc = "@254PR2?" + term
-        d3 = "@254PR3?" + term
-        d4 = "@254PR4?" + term
+        mp = "@254PR1?"
+        cc = "@254PR2?"
+        d3 = "@254PR3?"
+        d4 = "@254PR4?"
 
         cset = {"mp": mp,
                 "cc": cc,
@@ -55,9 +60,9 @@ def allCommands(device=None):
         # no parity
         # CR line termination
         term = "\r"
-        getctt = "TC" + term
-        gettar = "SET TTARGET" + term
-        getcpr = "E" + term
+        getctt = "TC"
+        gettar = "SET TTARGET"
+        getcpr = "E"
 
         cset = {"ct": getctt,
                 "target": gettar,
@@ -68,11 +73,11 @@ def allCommands(device=None):
         # no parity
         # CR line termination
         term = "\r"
-        cstate = "STATE" + term
-        getctt = "TC" + term
-        gettar = "SET TTARGET" + term
-        getmpr = "P" + term
-        getcpr = "E" + term
+        cstate = "STATE"
+        getctt = "TC"
+        gettar = "SET TTARGET"
+        getmpr = "P"
+        getcpr = "E"
 
         cset = {"state": cstate,
                 "ct": getctt,
@@ -86,7 +91,7 @@ def allCommands(device=None):
         # CRLF line termination
         # KRDG? 0 gets all inputs, 1 thru 8
         term = "\r\n"
-        gettmp = "KRDG?" + term
+        gettmp = "KRDG?"
 
         cset = {"readall": gettmp}
     elif device == "lakeshore325":
@@ -97,13 +102,13 @@ def allCommands(device=None):
         # Note: NIHTS uses loop 2 for detector regulation, not loop 1.
         #  Loop 1 is ... terrifying. 25 W max compared to 2W max.
         term = "\r\n"
-        gettmpA = "KRDG?A" + term
-        getsetA = "SETP? 1" + term
-        gethtrA = "HTR? 1" + term
+        gettmpA = "KRDG?A"
+        getsetA = "SETP? 1"
+        gethtrA = "HTR? 1"
 
-        gettmpB = "KRDG?B" + term
-        getsetB = "SETP? 2" + term
-        gethtrB = "HTR? 2" + term
+        gettmpB = "KRDG?B"
+        getsetB = "SETP? 2"
+        gethtrB = "HTR? 2"
 
         cset = {"reada": gettmpA,
                 "set1": getsetA,
@@ -114,8 +119,9 @@ def allCommands(device=None):
     else:
         print("INVALID DEVICE: %s" % (device))
         cset = None
+        term = None
 
-    return cset
+    return cset, term
 
 
 def defaultQueryCommands(device=None):
@@ -134,34 +140,34 @@ def defaultQueryCommands(device=None):
     # First get the full command set for this particular device
     #   These are stored by a key that represents the actual command,
     #   so I don't forget.
-    allCmds = allCommands(device=device)
+    allCmds, term = allCommands(device=device)
 
     if device == "vactransducer_mks972b":
-        cset = {"MicroPirani": allCmds["mp"],
-                "ColdCathode": allCmds["cc"],
-                "CMB4Digit": allCmds["prec4"]}
+        cset = {"MicroPirani": allCmds["mp"] + term,
+                "ColdCathode": allCmds["cc"] + term,
+                "CMB4Digit": allCmds["prec4"] + term}
 
     elif device == "sunpowergen1":
-        cset = {"ColdTip": allCmds["ct"],
-                "TargetTemp": allCmds["target"],
-                "PowerCommanded": allCmds["cmdpower"]}
+        cset = {"ColdTip": allCmds["ct"] + term,
+                "TargetTemp": allCmds["target"] + term,
+                "PowerCommanded": allCmds["cmdpower"] + term}
 
     elif device == "sunpowergen2":
-        cset = {"CoolerState": allCmds["state"],
-                "ColdTip": allCmds["ct"],
-                "PowerMeasured": allCmds["p"],
-                "PowerCommanded": allCmds["e"]}
+        cset = {"CoolerState": allCmds["state"] + term,
+                "ColdTip": allCmds["ct"] + term,
+                "PowerMeasured": allCmds["mpower"] + term,
+                "PowerCommanded": allCmds["cmdpower"] + term}
 
     elif device == "lakeshore218":
-        cset = {"SensorTemps": allCmds["krdg"]}
+        cset = {"SensorTemps": allCmds["readall"] + term}
 
     elif device == "lakeshore325":
-        cset = {"SensorTempA": allCmds["krdga"],
-                "SetpointA": allCmds["setp1"],
-                "HeaterA": allCmds["htr1"],
-                "SensorTempB": allCmds["krdgb"],
-                "SetpointB": allCmds["setp2"],
-                "HeaterB": allCmds["htr2"]}
+        cset = {"SensorTempA": allCmds["reada"] + term,
+                "SetpointA": allCmds["set1"] + term,
+                "HeaterA": allCmds["htr1"] + term,
+                "SensorTempB": allCmds["readb"] + term,
+                "SetpointB": allCmds["set2"] + term,
+                "HeaterB": allCmds["htr2"] + term}
     else:
         print("INVALID DEVICE: %s" % (device))
         cset = None

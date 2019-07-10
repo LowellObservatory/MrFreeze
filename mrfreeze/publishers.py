@@ -116,12 +116,16 @@ def publish_LSThing(dvice, replies, db=None, broker=None, debug=False):
     for reply in replies:
         ans = parsers.parseLakeShore(reply, replies[reply][0],
                                      modelnum=modelno)
-        fields.update(ans)
-        lastTS = replies[reply][1]
 
-    makeAndPublishAMQ(measname, fields, lastTS, broker, dvice.brokertopic,
-                      debug=debug)
-    makeAndPublishIDB(measname, fields, db, tags, dvice.tablename, debug=debug)
+        if ans != {}:
+            fields.update(ans)
+            lastTS = replies[reply][1]
+
+    if fields != {}:
+        makeAndPublishAMQ(measname, fields, lastTS, broker, dvice.brokertopic,
+                          debug=debug)
+        makeAndPublishIDB(measname, fields, db, tags, dvice.tablename,
+                          debug=debug)
 
 
 def publish_Sunpower(dvice, replies, db=None, broker=None, debug=False):
@@ -147,12 +151,15 @@ def publish_Sunpower(dvice, replies, db=None, broker=None, debug=False):
     lastTS = None
     for reply in replies:
         ans = parsers.parseSunpower(replies[reply][0])
-        fields.update(ans)
-        lastTS = replies[reply][1]
+        if ans != {}:
+            fields.update(ans)
+            lastTS = replies[reply][1]
 
-    makeAndPublishAMQ(measname, fields, lastTS, broker, dvice.brokertopic,
-                      debug=debug)
-    makeAndPublishIDB(measname, fields, db, tags, dvice.tablename, debug=debug)
+    if fields != {}:
+        makeAndPublishAMQ(measname, fields, lastTS, broker, dvice.brokertopic,
+                          debug=debug)
+        makeAndPublishIDB(measname, fields, db, tags, dvice.tablename,
+                          debug=debug)
 
 
 def publish_MKS972b(dvice, replies, db=None, broker=None, debug=False):
@@ -175,6 +182,8 @@ def publish_MKS972b(dvice, replies, db=None, broker=None, debug=False):
             fields.update({fieldname: float(v[0])})
             lastTS = replies[reply][1]
 
-    makeAndPublishAMQ(measname, fields, lastTS, broker, dvice.brokertopic,
-                      debug=debug)
-    makeAndPublishIDB(measname, fields, db, tags, dvice.tablename, debug=debug)
+    if fields != {}:
+        makeAndPublishAMQ(measname, fields, lastTS, broker, dvice.brokertopic,
+                          debug=debug)
+        makeAndPublishIDB(measname, fields, db, tags, dvice.tablename,
+                          debug=debug)
