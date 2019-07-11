@@ -189,18 +189,35 @@ def remoteQueryAPI(dvice, cmd, value=None):
     on all (well, almost all) device types.
     """
     # Get all the defined commands for this device
-    allCmds = allCommands(device=dvice)
+    allcmds, term = allCommands(device=dvice)
 
     if dvice.type.lower() == 'vactransducer_mks972b':
+        # These are simpler, since they take no arguments/values
+
         if cmd.lower() == 'getvals':
             # This one is just the same as the default set
-            cset = {"GetAllValues": cset}
+            cset = {"GetAllValues": defaultQueryCommands(device=dvice)}
         elif cmd.lower() == 'getmp':
-            cset = {"MicroPirani": cset["MicroPirani"]}
+            cset = {"MicroPirani": allcmds["MicroPirani"] + term}
         elif cmd.lower() == 'getcc':
-            cset = {"ColdCathode": cset["ColdCathode"]}
+            cset = {"ColdCathode": allcmds["ColdCathode"] + term}
         elif cmd.lower() == 'getcombo':
-            cset = {"CombinedPressure": cset["CMB4Digit"]}
+            cset = {"CombinedPressure": allcmds["CMB4Digit"] + term}
 
-    elif dvice.type.lower() == "sunpowergen1":
+    elif dvice.type.lower() in ["sunpowergen1", "sunpowergen2"]:
+        # These are valid for both Sunpower controller generations
+        if cmd.lower() == 'getpower':
+            cset = {"PowerCommanded": allcmds["cmdpower"] + term}
+        elif cmd.lower() == 'getcoldtip':
+            cset = {"GetColdTip": allcmds["ct"] + term}
+        elif cmd.lower() == 'setcoldtip':
+            cwv = "%s=%.3f%s" % (allcmds["ct"], float(value), term)
+            cset = {"SetColdTip": cwv}
+
+    elif dvice.type.lower() == "sunpowergen2":
+        # These ONLY work for Gen. 2 controllers (or above, I suppose)
         pass
+
+
+
+    return cset
