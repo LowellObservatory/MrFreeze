@@ -34,6 +34,8 @@ def allCommands(device=None):
     of commands that pull double-duty, such as 'SET TTARGET' for the Sunpower
     Cryotel units as well as the Lake Shore devices.
     """
+    # Because I'm paranoid
+    device = device.lower()
 
     if device == "vactransducer_mks972b":
         # NOTE: This is the command set for the gauge directly; the controller
@@ -48,11 +50,12 @@ def allCommands(device=None):
         d3 = "@254PR3?"
         d4 = "@254PR4?"
 
-        cset = {"mp": mp,
-                "cc": cc,
-                "prec3": d3,
-                "prec4": d4}
-    elif device == "sunpowergen1":
+        cset = {"micropirani": mp,
+                "coldcathode": cc,
+                "comboprec3": d3,
+                "comboprec4": d4}
+
+    elif device in ["sunpowergen1", "sunpowergen2"]:
         # NOTE A Gen 1 controller has less functionality than the Gen 2.
         #   Specifically, there's no way to get the actual/measured power!
         # 4800 baud
@@ -60,30 +63,36 @@ def allCommands(device=None):
         # no parity
         # CR line termination
         term = "\r"
-        getctt = "TC"
-        gettar = "SET TTARGET"
-        getcpr = "E"
+        coldtip = "TC"
+        target = "SET TTARGET"
+        cmdpower = "E"
 
-        cset = {"ct": getctt,
-                "target": gettar,
-                "cmdpower": getcpr}
-    elif device == "sunpowergen2":
-        # 4800 baud
-        # 8 data, 1 stop
-        # no parity
-        # CR line termination
-        term = "\r"
-        cstate = "STATE"
-        getctt = "TC"
-        gettar = "SET TTARGET"
-        getmpr = "P"
-        getcpr = "E"
+        cset = {"coldtip": coldtip,
+                "target": target,
+                "cmdpower": cmdpower}
 
-        cset = {"state": cstate,
-                "ct": getctt,
-                "target": gettar,
-                "mpower": getmpr,
-                "cmdpower": getcpr}
+        # NOTE this is a subset of the above!
+        if device == "sunpowergen2":
+            stopmode = "SET SSTOPM"
+            stop = "SET SSTOP"
+
+            minpwr = "SET MIN"
+            maxpwr = "SET MAX"
+
+            state = "STATE"
+
+            mpower = "P"
+
+            g2cset = {"stopmode": stopmode,
+                      "stop": stop,
+                      "minpwr": minpwr,
+                      "maxpwr": maxpwr,
+                      "state": state,
+                      "mpower": mpower}
+
+            # Add to the gen1 command set
+            cset.update(g2cset)
+
     elif device == "lakeshore218":
         # 9600 baud, half duplex
         # 1 start, 7 data, 1 parity, 1 stop
@@ -91,9 +100,10 @@ def allCommands(device=None):
         # CRLF line termination
         # KRDG? 0 gets all inputs, 1 thru 8
         term = "\r\n"
-        gettmp = "KRDG?"
+        readall = "KRDG?"
 
-        cset = {"readall": gettmp}
+        cset = {"readall": readall}
+
     elif device == "lakeshore325":
         # 9600 baud, half duplex
         # 1 start, 7 data, 1 parity, 1 stop
@@ -102,20 +112,35 @@ def allCommands(device=None):
         # Note: NIHTS uses loop 2 for detector regulation, not loop 1.
         #  Loop 1 is ... terrifying. 25 W max compared to 2W max.
         term = "\r\n"
-        gettmpA = "KRDG?A"
-        getsetA = "SETP? 1"
-        gethtrA = "HTR? 1"
+        reada = "KRDG?A"
+        readb = "KRDG?B"
 
-        gettmpB = "KRDG?B"
-        getsetB = "SETP? 2"
-        gethtrB = "HTR? 2"
+        getsetp1 = "SETP? 1"
+        setsetp1 = "SETP 1"
+        getsetp2 = "SETP? 2"
+        setsetp2 = "SETP 2"
 
-        cset = {"reada": gettmpA,
-                "set1": getsetA,
-                "htr1": gethtrA,
-                "readb": gettmpB,
-                "set2": getsetB,
-                "htr2": gethtrB}
+        gethtrpwr1 = "HTR? 1"
+        gethtr1 = "RANGE? 1"
+        sethtr1 = "RANGE 1"
+
+        gethtrpwr2 = "HTR? 2"
+        gethtr2 = "RANGE? 2"
+        sethtr2 = "RANGE 2"
+
+        cset = {"reada": reada,
+                "readb": readb,
+                "getsetp1": getsetp1,
+                "setsetp1": setsetp1,
+                "getsetp2": getsetp2,
+                "setsetp2": setsetp2,
+                "gethtrpwr1": gethtrpwr1,
+                "gethtr1": gethtr1,
+                "sethtr1": sethtr1,
+                "gethtrpwr2": gethtrpwr2,
+                "gethtr2": gethtr2,
+                "sethtr2": sethtr2}
+
     else:
         print("INVALID DEVICE: %s" % (device))
         cset = None
@@ -211,12 +236,18 @@ def remoteQueryAPI(dvice, cmd, value=None):
         elif cmd.lower() == 'getcoldtip':
             cset = {"GetColdTip": allcmds["ct"] + term}
         elif cmd.lower() == 'setcoldtip':
-            cwv = "%s=%.3f%s" % (allcmds["ct"], float(value), term)
-            cset = {"SetColdTip": cwv}
+            try:
+                cwv = "%s=%.3f%s" % (allcmds["ct"], float(value), term)
+                cset = {"SetColdTip": cwv}
+            except ValueError:
+                print("Can't convert %s to float needed for command %s!" %
+                      (value, cmd))
+                print("Ignoring the command.")
 
     elif dvice.type.lower() == "sunpowergen2":
         # These ONLY work for Gen. 2 controllers (or above, I suppose)
-        pass
+        if cmd.lower() == 'softcontrol':
+            cset = {"SoftwareControl": allcmds["cmdpower"] + term}
 
 
 
