@@ -21,6 +21,31 @@ from collections import MutableMapping
 import xmlschema as xmls
 
 
+def assignValueCmd(cmd, value, term, vtype=float, vterm='='):
+    """
+    cmd is the base/starting command string
+    value is the value/argument for the given cmd
+    term is the line/command ending/terminator
+
+    vtype is the type of the value
+    vterm is the separator between cmd and value
+    """
+    commandWithVal = None
+    try:
+        if isinstance(value, float):
+            commandWithVal = "%s%s%.3f%s" % (cmd, vterm, float(value), term)
+        elif isinstance(value, int):
+            commandWithVal = "%s%s%d%s" % (cmd, vterm, int(value), term)
+        elif isinstance(value, str):
+            commandWithVal = "%s%s%s%s" % (cmd, vterm, str(value), term)
+    except ValueError:
+        print("Can't convert %s to type %s needed for command %s!" %
+              (value, vtype.__name__, cmd))
+        print("Ignoring the command.")
+
+    return commandWithVal
+
+
 def flatten(d, parent_key='', sep='_'):
     """
     Thankfully StackOverflow exists because I'm too tired to write out this

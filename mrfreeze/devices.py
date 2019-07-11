@@ -15,6 +15,10 @@ Further description.
 
 from __future__ import division, print_function, absolute_import
 
+from . import mks_kjl
+from . import sunpower
+from . import lakeshore
+
 
 def allCommands(device=None):
     """
@@ -38,113 +42,16 @@ def allCommands(device=None):
     device = device.lower()
 
     if device == "vactransducer_mks972b":
-        # NOTE: This is the command set for the gauge directly; the controller
-        #  (MKS PDR900) has a *different* command set that could be used
-        # 9600 baud
-        # 8 data, 1 stop bit
-        # no parity
-        # ';FF' termination
-        term = ";FF"
-        mp = "@254PR1?"
-        cc = "@254PR2?"
-        d3 = "@254PR3?"
-        d4 = "@254PR4?"
-
-        cset = {"micropirani": mp,
-                "coldcathode": cc,
-                "comboprec3": d3,
-                "comboprec4": d4}
+        cset, term = mks_kjl.allCommands(device)
 
     elif device in ["sunpowergen1", "sunpowergen2"]:
-        # NOTE A Gen 1 controller has less functionality than the Gen 2.
-        #   Specifically, there's no way to get the actual/measured power!
-        # 4800 baud
-        # 8 data, 1 stop
-        # no parity
-        # CR line termination
-        term = "\r"
-        coldtip = "TC"
-        target = "SET TTARGET"
-        cmdpower = "E"
+        cset, term = sunpower.allCommands(device)
 
-        cset = {"coldtip": coldtip,
-                "target": target,
-                "cmdpower": cmdpower}
-
-        # NOTE this is a subset of the above!
-        if device == "sunpowergen2":
-            stopmode = "SET SSTOPM"
-            stop = "SET SSTOP"
-
-            minpwr = "SET MIN"
-            maxpwr = "SET MAX"
-
-            state = "STATE"
-
-            mpower = "P"
-
-            g2cset = {"stopmode": stopmode,
-                      "stop": stop,
-                      "minpwr": minpwr,
-                      "maxpwr": maxpwr,
-                      "state": state,
-                      "mpower": mpower}
-
-            # Add to the gen1 command set
-            cset.update(g2cset)
-
-    elif device == "lakeshore218":
-        # 9600 baud, half duplex
-        # 1 start, 7 data, 1 parity, 1 stop
-        # odd parity
-        # CRLF line termination
-        # KRDG? 0 gets all inputs, 1 thru 8
-        term = "\r\n"
-        readall = "KRDG?"
-
-        cset = {"readall": readall}
-
-    elif device == "lakeshore325":
-        # 9600 baud, half duplex
-        # 1 start, 7 data, 1 parity, 1 stop
-        # odd parity
-        # CRLF line termination
-        # Note: NIHTS uses loop 2 for detector regulation, not loop 1.
-        #  Loop 1 is ... terrifying. 25 W max compared to 2W max.
-        term = "\r\n"
-        reada = "KRDG?A"
-        readb = "KRDG?B"
-
-        getsetp1 = "SETP? 1"
-        setsetp1 = "SETP 1"
-        getsetp2 = "SETP? 2"
-        setsetp2 = "SETP 2"
-
-        gethtrpwr1 = "HTR? 1"
-        gethtr1 = "RANGE? 1"
-        sethtr1 = "RANGE 1"
-
-        gethtrpwr2 = "HTR? 2"
-        gethtr2 = "RANGE? 2"
-        sethtr2 = "RANGE 2"
-
-        cset = {"reada": reada,
-                "readb": readb,
-                "getsetp1": getsetp1,
-                "setsetp1": setsetp1,
-                "getsetp2": getsetp2,
-                "setsetp2": setsetp2,
-                "gethtrpwr1": gethtrpwr1,
-                "gethtr1": gethtr1,
-                "sethtr1": sethtr1,
-                "gethtrpwr2": gethtrpwr2,
-                "gethtr2": gethtr2,
-                "sethtr2": sethtr2}
+    elif device in ["lakeshore218", "lakeshore325"]:
+        cset, term = lakeshore.allCommands(device)
 
     else:
         print("INVALID DEVICE: %s" % (device))
-        cset = None
-        term = None
 
     return cset, term
 
@@ -162,37 +69,13 @@ def defaultQueryCommands(device=None):
     to the actual serial command needed to get it.  Parsing the result
     occurs elsewhere.
     """
-    # First get the full command set for this particular device
-    #   These are stored by a key that represents the actual command,
-    #   so I don't forget.
-    allCmds, term = allCommands(device=device)
 
     if device == "vactransducer_mks972b":
-        cset = {"MicroPirani": allCmds["mp"] + term,
-                "ColdCathode": allCmds["cc"] + term,
-                "CMB4Digit": allCmds["prec4"] + term}
-
-    elif device == "sunpowergen1":
-        cset = {"ColdTip": allCmds["ct"] + term,
-                "TargetTemp": allCmds["target"] + term,
-                "PowerCommanded": allCmds["cmdpower"] + term}
-
-    elif device == "sunpowergen2":
-        cset = {"CoolerState": allCmds["state"] + term,
-                "ColdTip": allCmds["ct"] + term,
-                "PowerMeasured": allCmds["mpower"] + term,
-                "PowerCommanded": allCmds["cmdpower"] + term}
-
-    elif device == "lakeshore218":
-        cset = {"SensorTemps": allCmds["readall"] + term}
-
-    elif device == "lakeshore325":
-        cset = {"SensorTempA": allCmds["reada"] + term,
-                "SetpointA": allCmds["set1"] + term,
-                "HeaterA": allCmds["htr1"] + term,
-                "SensorTempB": allCmds["readb"] + term,
-                "SetpointB": allCmds["set2"] + term,
-                "HeaterB": allCmds["htr2"] + term}
+        cset = mks_kjl.defaultQueries(device)
+    elif device in ['sunpowergen1', 'sunpowergen2']:
+        cset = sunpower.defaultQueries(device)
+    elif device in ['lakeshore218', 'lakeshore325']:
+        cset = lakeshore.defaultQueries(device)
     else:
         print("INVALID DEVICE: %s" % (device))
         cset = None
@@ -200,55 +83,43 @@ def defaultQueryCommands(device=None):
     return cset
 
 
-def remoteQueryAPI(dvice, cmd, value=None):
+def translateRemoteAPI(dvice, cmd, value=None):
     """
-    This defines the interface between the commands that can come in
-    over the broker and those that actually get sent to the devices.
-
-    Given a command keyword (and value, if there is one) it'll return the
-    command set to be issued to a given device.  If it isn't found, it
-    screams.
+    Given a device and a command string, and optionally a value, return the
+    constructed dict of actual device commands that corresponds to the given
+    command string. If it isn't found, it screams.
 
     The *general* commands of changing the device's hostname/port and
     enabling/disabling it are not included here, since they operate
     on all (well, almost all) device types.
     """
-    # Get all the defined commands for this device
-    allcmds, term = allCommands(device=dvice)
+    # More paranoia!
+    try:
+        cmd = cmd.lower()
+        dvtype = dvice.type.lower()
+        value = value.lower()
+    except ValueError:
+        # This means something has gone very, very wrong.
+        #   Take a shortcut to the exit
+        dvtype = None
 
-    if dvice.type.lower() == 'vactransducer_mks972b':
-        # These are simpler, since they take no arguments/values
+    # Set our default/fail value
+    fcmd = None
+    cset = {}
 
-        if cmd.lower() == 'getvals':
-            # This one is just the same as the default set
-            cset = {"GetAllValues": defaultQueryCommands(device=dvice)}
-        elif cmd.lower() == 'getmp':
-            cset = {"MicroPirani": allcmds["MicroPirani"] + term}
-        elif cmd.lower() == 'getcc':
-            cset = {"ColdCathode": allcmds["ColdCathode"] + term}
-        elif cmd.lower() == 'getcombo':
-            cset = {"CombinedPressure": allcmds["CMB4Digit"] + term}
+    if dvtype == 'vactransducer_mks972b':
+        fcmd = mks_kjl.brokerAPI(dvtype, cmd)
 
-    elif dvice.type.lower() in ["sunpowergen1", "sunpowergen2"]:
-        # These are valid for both Sunpower controller generations
-        if cmd.lower() == 'getpower':
-            cset = {"PowerCommanded": allcmds["cmdpower"] + term}
-        elif cmd.lower() == 'getcoldtip':
-            cset = {"GetColdTip": allcmds["ct"] + term}
-        elif cmd.lower() == 'setcoldtip':
-            try:
-                cwv = "%s=%.3f%s" % (allcmds["ct"], float(value), term)
-                cset = {"SetColdTip": cwv}
-            except ValueError:
-                print("Can't convert %s to float needed for command %s!" %
-                      (value, cmd))
-                print("Ignoring the command.")
+    elif dvtype in ["sunpowergen1", "sunpowergen2"]:
+        fcmd = sunpower.brokerAPI(dvtype, cmd, value=None)
 
-    elif dvice.type.lower() == "sunpowergen2":
-        # These ONLY work for Gen. 2 controllers (or above, I suppose)
-        if cmd.lower() == 'softcontrol':
-            cset = {"SoftwareControl": allcmds["cmdpower"] + term}
+    elif dvtype in ["lakeshore218", "lakeshore325"]:
+        fcmd = lakeshore.brokerAPI(dvtype, cmd, value=None)
 
-
+    # Package it up for returning
+    if fcmd is None:
+        print("Unknown command %s!" % (cmd))
+    else:
+        cset = {cmd: fcmd}
 
     return cset
