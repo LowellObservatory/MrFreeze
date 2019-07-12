@@ -23,7 +23,8 @@ from ligmos.utils import packetizer
 from . import parsers
 
 
-def constructXMLPacket(measurement, fields, debug=False):
+def constructXMLPacket(measurement, fields, rootTag="MrFreezeCommunique",
+                       debug=False):
     """
     measurement should be a string describing the thing
     fields should be a dict!
@@ -33,7 +34,6 @@ def constructXMLPacket(measurement, fields, debug=False):
         return None
 
     dPacket = OrderedDict()
-    rootTag = "MrFreezeCommunique"
 
     restOfStuff = {measurement: fields}
 
