@@ -28,15 +28,15 @@ from mrfreeze import publishers
 def constructCommand(inst, device, tag, cmd, value=None, debug=False):
     """
     """
-    mstr = "Command"
+    mstr = "request"
     fields = {}
 
     # I'm keeping this super simple, just a set of tags under the root tag
-    fields.update({"Instrument": inst})
-    fields.update({"Device": device})
-    fields.update({"Tag": tag})
-    fields.update({"Command": cmd})
-    fields.update({"Value": value})
+    fields.update({"instrument": inst})
+    fields.update({"device": device})
+    fields.update({"tag": tag})
+    fields.update({"command": cmd})
+    fields.update({"argument": value})
 
     pak = publishers.constructXMLPacket(mstr, fields,
                                         rootTag="MrFreezeCommunique",
