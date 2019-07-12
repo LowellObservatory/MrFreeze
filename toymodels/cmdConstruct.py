@@ -63,3 +63,4 @@ if __name__ == "__main__":
     thisScheme = schemaDict[tname]
 
     fields = parsers.parserCmdPacket(headers, msg, schema=thisScheme)
+    print(fields)
