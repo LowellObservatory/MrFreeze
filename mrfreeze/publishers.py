@@ -39,19 +39,22 @@ def advertiseConfiged(config, debug=True):
     devlist = []
     # For each section in the config file (so it's per-device)
     for i in config:
-        dev = config[i]
+        isect = config[i]
+        for d in isect:
+            dev = isect[d]
 
-        devdict = {"instrument": dev.instrument,
-                   "device": dev.devtype,
-                   "tag": dev.extratag,
-                   "hostname": dev.devhost,
-                   "port": dev.devport,
-                   "enabled": dev.enabled}
+            devdict = {"instrument": dev.instrument,
+                       "device": dev.devtype,
+                       "tag": dev.extratag,
+                       "hostname": dev.devhost,
+                       "port": dev.devport,
+                       "enabled": dev.enabled}
 
-        # We store these semi-flat organized by a "device" tag;
-        #   that makes the XML schema easier to handle, since we
-        #   can have 0-N <device> tags that all look the same
-        devlist.append(devdict)
+            # We store these semi-flat organized by a "device" tag;
+            #   that makes the XML schema easier to handle, since we
+            #   can have 0-N <device> tags that all look the same
+            devlist.append(devdict)
+
     idict.update({"device": devlist})
 
     pak = constructXMLPacket("advertisement", idict, debug=debug)

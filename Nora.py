@@ -53,6 +53,11 @@ if __name__ == "__main__":
                                                         enableCheck=False,
                                                         logfile=False)
 
+    # Reorganize the configuration to be per-instrument so it's a little
+    #   easier to loop over and do other stuff with
+    allInsts = confparsers.regroupConfig(config, groupKey='instrument',
+                                         ekeys=['devtype', 'extratag'])
+
     try:
         with PidFile(pidname=mynameis.lower(), piddir=pidpath) as p:
             # Print the preamble of this particular instance
@@ -87,7 +92,7 @@ if __name__ == "__main__":
                 conn = amqs['broker-dct'][0]
 
                 print("Advertising the current actions...")
-                adpacket = mrfreeze.publishers.advertiseConfiged(config)
+                adpacket = mrfreeze.publishers.advertiseConfiged(allInsts)
                 conn.publish(queue.replytopic, adpacket)
 
                 # Check for any updates to those actions, or any commanded
@@ -105,12 +110,15 @@ if __name__ == "__main__":
                 nleft = len(amqlistener.brokerQueue.items())
                 print("%d items still in the queue" % (nleft))
 
-                # Reorganize the configuration to be per-instrument
-                perInst = confparsers.regroupConfig(config,
-                                                    groupKey='instrument')
-                for inst in perInst:
+                for inst in allInsts:
                     print("Processing instrument %s" % (inst))
-                    mrfreeze.actions.queryAllDevices(perInst[inst], amqs, idbs,
+                    # It could be that all the devices of this instrument
+                    #   are actually disabled; the query function will
+                    #   check before actually querying though, since that
+                    #   can change from loop-to-loop depending on the above
+                    #   queueActions
+                    mrfreeze.actions.queryAllDevices(allInsts[inst],
+                                                     amqs, idbs,
                                                      debug=True)
 
                 print("Done stuff!")
