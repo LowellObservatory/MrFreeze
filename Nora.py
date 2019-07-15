@@ -40,9 +40,6 @@ if __name__ == "__main__":
     # Interval between successive runs of the polling loop (seconds)
     bigsleep = 60
 
-    # Total time for entire set of actions per instrument
-    alarmtime = 600
-
     # config: dictionary of parsed config file
     # comm: common block from config file
     # args: parsed options
@@ -53,10 +50,8 @@ if __name__ == "__main__":
                                                         desc=desc,
                                                         extraargs=eargs,
                                                         conftype=deviceconf,
+                                                        enableCheck=False,
                                                         logfile=False)
-
-    # Reorganize the configuration to be per-instrument
-    perInst = confparsers.regroupConfig(config, groupKey='instrument')
 
     try:
         with PidFile(pidname=mynameis.lower(), piddir=pidpath) as p:
@@ -88,26 +83,37 @@ if __name__ == "__main__":
             while runner.halt is False:
                 # Check on our connections
                 amqs = amq.checkConnections(amqs, subscribe=True)
+                # Make sure we update our hardcoded reference
+                conn = amqs['broker-dct'][0]
 
-                print("Doing some sort of loop ...")
+                print("Advertising the current actions...")
+                adpacket = mrfreeze.publishers.advertiseConfiged(config)
+                conn.publish(queue.replytopic, adpacket)
+
+                # Check for any updates to those actions, or any commanded
+                #   actions in general
+                print("Cleaning out the queue...")
+                queueActions = amqlistener.emptyQueue()
+                print("%d items obtained from the queue" % (len(queueActions)))
+
+                # Do some stuff!
+                for action in queueActions:
+                    print("Doing action...")
+                    print(action)
+
+                # Diagnostic output
+                nleft = len(amqlistener.brokerQueue.items())
+                print("%d items still in the queue" % (nleft))
+
+                # Reorganize the configuration to be per-instrument
+                perInst = confparsers.regroupConfig(config,
+                                                    groupKey='instrument')
                 for inst in perInst:
                     print("Processing instrument %s" % (inst))
                     mrfreeze.actions.queryAllDevices(perInst[inst], amqs, idbs,
                                                      debug=True)
 
                 print("Done stuff!")
-
-                print("Cleaning out the queue...")
-                queueActions = amqlistener.emptyQueue()
-                print("%d items obtained from the queue" % (len(queueActions)))
-
-                # Do some more stuff!
-
-                print("Done queue processing!")
-
-                # Diagnostic output
-                nleft = len(amqlistener.brokerQueue.items())
-                print("%d items still in the queue" % (nleft))
 
                 # Consider taking a big nap
                 if runner.halt is False:

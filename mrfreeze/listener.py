@@ -92,6 +92,7 @@ class MrFreezeCommandConsumer(ConnectionListener):
                     cmddict = parsers.parserCmdPacket(headers, body,
                                                       schema=schema,
                                                       debug=True)
+
                 elif tname.endswith("loisLog"):
                     tfields = parsers.parseLOISTemps(headers, body)
                     # A little bit of hackish because it's already ugly

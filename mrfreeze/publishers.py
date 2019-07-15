@@ -23,6 +23,42 @@ from ligmos.utils import packetizer
 from . import parsers
 
 
+def advertiseConfiged(config, debug=True):
+    """
+    Given a parsed configuration object, construct an advertisement
+    of all the instruments and subsequent devices that were properly defined.
+
+    This does *not* mean that all are actually active; that will be checked
+    by the consumer of this message.
+
+    This will be the primary means of remote processes controlling things;
+    they discover and can get updates on the enabled/disabled status of
+    things.
+    """
+    idict = {}
+    devlist = []
+    # For each section in the config file (so it's per-device)
+    for i in config:
+        dev = config[i]
+
+        devdict = {"instrument": dev.instrument,
+                   "device": dev.devtype,
+                   "tag": dev.extratag,
+                   "hostname": dev.devhost,
+                   "port": dev.devport,
+                   "enabled": dev.enabled}
+
+        # We store these semi-flat organized by a "device" tag;
+        #   that makes the XML schema easier to handle, since we
+        #   can have 0-N <device> tags that all look the same
+        devlist.append(devdict)
+    idict.update({"device": devlist})
+
+    pak = constructXMLPacket("advertisement", idict, debug=debug)
+
+    return pak
+
+
 def constructXMLPacket(measurement, fields, rootTag="MrFreezeCommunique",
                        debug=False):
     """
