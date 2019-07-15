@@ -46,10 +46,16 @@ def constructCommand(inst, device, tag, cmd, value=None, debug=False):
 
 
 if __name__ == "__main__":
+    # inst = 'NIHTS'
+    # device = 'sunpowergen2'
+    # tag = 'BenchCooler'
+    # cmd = 'coldtip'
+    # value = None
+
     inst = 'NIHTS'
     device = 'sunpowergen2'
     tag = 'BenchCooler'
-    cmd = 'coldtip'
+    cmd = 'querydisable'
     value = None
 
     # Make a packet of the above. It's ok for value to be None.
@@ -64,3 +70,15 @@ if __name__ == "__main__":
 
     fields = parsers.parserCmdPacket(headers, msg, schema=thisScheme)
     print(fields)
+
+    inst = fields['request_instrument'].lower()
+    device = fields['request_device'].lower()
+    tag = fields['request_tag']
+    cmd = fields['request_command']
+    arg = fields['request_argument']
+    print("Message parsed as:")
+    print("Instrument: %s" % (inst))
+    print("DeviceType: %s" % (device))
+    print("AdditionalTag: %s" % (tag))
+    print("Command: %s" % (cmd))
+    print("CommandArgument: %s" % (arg))
