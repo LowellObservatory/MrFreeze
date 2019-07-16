@@ -110,6 +110,12 @@ if __name__ == "__main__":
                     acmd = action['request_command']
                     aarg = action['request_argument']
 
+                    # Do a simple check to see if it's a command for Nora
+                    if acmd.lower() == 'advertise':
+                        print("Advertising the current actions...")
+                        adpacket = mrfreeze.publishers.advertiseConfiged(allInsts)
+                        conn.publish(queue.replytopic, adpacket)
+
                     if atag is not None:
                         cdest = "%s_%s" % (adevc, atag)
                     else:
@@ -135,9 +141,11 @@ if __name__ == "__main__":
                             print("Disabling %s %s" % (ainst, cdest.lower()))
                             selInst.enabled = False
                         elif acmd.lower() == "devicehost":
-                            pass
+                            print("Setting device host to %s" % (aarg))
+                            selInst.devhost = aarg
                         elif acmd.lower() == "deviceport":
-                            pass
+                            print("Setting device port to %s" % (aarg))
+                            selInst.devport = aarg
                         else:
                             # Check to see if the command is in the remoteAPI
                             #   that we defined for the devices
@@ -145,7 +153,7 @@ if __name__ == "__main__":
 
                         # Now store this instrument back in the main set,
                         #   so we can use any updates that just happened
-                        pass
+                        allInsts[ainst][cdest] = selInst
 
                 # Diagnostic output
                 nleft = len(amqlistener.brokerQueue.items())
