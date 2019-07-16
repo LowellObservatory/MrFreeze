@@ -23,6 +23,26 @@ from ligmos.utils import packetizer
 from . import parsers
 
 
+def constructCommand(inst, device, tag, cmd, value=None, debug=False):
+    """
+    """
+    mstr = "request"
+    fields = {}
+
+    # I'm keeping this super simple, just a set of tags under the root tag
+    fields.update({"instrument": inst})
+    fields.update({"device": device})
+    fields.update({"tag": tag})
+    fields.update({"command": cmd})
+    fields.update({"argument": value})
+
+    pak = constructXMLPacket(mstr, fields,
+                             rootTag="MrFreezeCommunique",
+                             debug=debug)
+
+    return pak
+
+
 def advertiseConfiged(config, debug=True):
     """
     Given a parsed configuration object, construct an advertisement

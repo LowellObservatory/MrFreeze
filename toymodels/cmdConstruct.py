@@ -25,26 +25,6 @@ from mrfreeze import parsers
 from mrfreeze import publishers
 
 
-def constructCommand(inst, device, tag, cmd, value=None, debug=False):
-    """
-    """
-    mstr = "request"
-    fields = {}
-
-    # I'm keeping this super simple, just a set of tags under the root tag
-    fields.update({"instrument": inst})
-    fields.update({"device": device})
-    fields.update({"tag": tag})
-    fields.update({"command": cmd})
-    fields.update({"argument": value})
-
-    pak = publishers.constructXMLPacket(mstr, fields,
-                                        rootTag="MrFreezeCommunique",
-                                        debug=debug)
-
-    return pak
-
-
 if __name__ == "__main__":
     # inst = 'NIHTS'
     # device = 'sunpowergen2'
@@ -59,7 +39,8 @@ if __name__ == "__main__":
     value = None
 
     # Make a packet of the above. It's ok for value to be None.
-    msg = constructCommand(inst, device, tag, cmd, value=value, debug=True)
+    msg = publishers.constructCommand(inst, device, tag, cmd,
+                                      value=value, debug=True)
 
     # Parse the packet. Have to do some boilerplate crap first to set up
     headers = {'destination': '/topic/lig.MrFreeze.cmd'}
