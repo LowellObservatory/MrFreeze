@@ -104,7 +104,48 @@ if __name__ == "__main__":
                 # Do some stuff!
                 for action in queueActions:
                     print("Doing action...")
-                    print(action)
+                    ainst = action['request_instrument']
+                    adevc = action['request_device']
+                    atag = action['request_tag']
+                    acmd = action['request_command']
+                    aarg = action['request_argument']
+
+                    if atag is not None:
+                        cdest = "%s_%s" % (adevc, atag)
+                    else:
+                        cdest = "%s" % (adevc)
+
+                    # Check to see if this destination is one we actually
+                    #   know anything about
+                    try:
+                        selInst = allInsts[ainst][cdest]
+                    except AttributeError:
+                        print("WARNING: Command %s ignored!" % (acmd))
+                        print("Unknown instrument %s" % (cdest))
+                        selInst = None
+
+                    print(selInst)
+
+                    # Now check the actual command
+                    if selInst is not None:
+                        if acmd.lower() == "queryenable":
+                            print("Enabling %s %s" % (ainst, cdest.lower()))
+                            selInst.enabled = True
+                        elif acmd.lower() == "querydisable":
+                            print("Disabling %s %s" % (ainst, cdest.lower()))
+                            selInst.enabled = False
+                        elif acmd.lower() == "devicehost":
+                            pass
+                        elif acmd.lower() == "deviceport":
+                            pass
+                        else:
+                            # Check to see if the command is in the remoteAPI
+                            #   that we defined for the devices
+                            pass
+
+                        # Now store this instrument back in the main set,
+                        #   so we can use any updates that just happened
+                        pass
 
                 # Diagnostic output
                 nleft = len(amqlistener.brokerQueue.items())
