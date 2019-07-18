@@ -16,7 +16,7 @@ import time
 
 from pid import PidFile, PidFileError
 
-import mrfreeze
+from mrfreeze import actions, listener, publishers
 from ligmos.workers import workerSetup, connSetup
 from ligmos.utils import amq, common, classes, confparsers
 
@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
             # UGH more hardcoding. Someone more clever than I can clean up.
             db = idbs['database-dct']
-            amqlistener = mrfreeze.listener.MrFreezeCommandConsumer(db=db)
+            amqlistener = listener.MrFreezeCommandConsumer(db=db)
 
             # Specify our custom listener that will really do all the work
             #   Since we're hardcoding for the DCTConsumer anyways, I'll take
@@ -91,10 +91,6 @@ if __name__ == "__main__":
                 # Make sure we update our hardcoded reference
                 conn = amqs['broker-dct'][0]
 
-                print("Advertising the current actions...")
-                adpacket = mrfreeze.publishers.advertiseConfiged(allInsts)
-                conn.publish(queue.replytopic, adpacket)
-
                 # Check for any updates to those actions, or any commanded
                 #   actions in general
                 print("Cleaning out the queue...")
@@ -113,7 +109,7 @@ if __name__ == "__main__":
                     # Do a simple check to see if it's a command for Nora
                     if acmd.lower() == 'advertise':
                         print("Advertising the current actions...")
-                        adpacket = mrfreeze.publishers.advertiseConfiged(allInsts)
+                        adpacket = publishers.advertiseConfiged(allInsts)
                         conn.publish(queue.replytopic, adpacket)
 
                     if atag is not None:
@@ -166,9 +162,9 @@ if __name__ == "__main__":
                     #   check before actually querying though, since that
                     #   can change from loop-to-loop depending on the above
                     #   queueActions
-                    mrfreeze.actions.queryAllDevices(allInsts[inst],
-                                                     amqs, idbs,
-                                                     debug=True)
+                    actions.queryAllDevices(allInsts[inst],
+                                            amqs, idbs,
+                                            debug=True)
 
                 print("Done stuff!")
 
