@@ -15,19 +15,15 @@ Further description.
 
 from __future__ import division, print_function, absolute_import
 
-import time
 import datetime as dt
 
 import serial
-
-from . import devices
-from ligmos import utils
 
 
 def encoder(msg):
     """
     """
-    if type(msg) is str:
+    if isinstance(msg, str):
         # msg = msg + "\r\n"
         msg = msg.encode("utf-8")
 

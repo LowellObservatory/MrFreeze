@@ -115,7 +115,7 @@ def brokerAPI(dvice, cmd, value=None):
     else:
         if cmd in ['setsetp1', 'setsetp2']:
             fcmd = assignValueCmd(allcmds[cmd], value, term,
-                                    vtype=float, vterm=',')
+                                  vtype=float, vterm=',')
 
         elif cmd == 'sethtr1':
             if value.lower() == 'high':
@@ -127,11 +127,11 @@ def brokerAPI(dvice, cmd, value=None):
             else:
                 pval = None
                 print("Unknown value %s for command %s!" %
-                        (value, cmd))
+                      (value, cmd))
 
             if pval is not None:
                 fcmd = assignValueCmd(allcmds[cmd], pval, term,
-                                    vtype=int, vterm=',')
+                                      vtype=int, vterm=',')
 
         elif cmd == 'sethtr2':
             if value.lower() == 'on':
@@ -141,10 +141,10 @@ def brokerAPI(dvice, cmd, value=None):
             else:
                 pval = None
                 print("Unknown value %s for command %s!" %
-                        (value, cmd))
+                      (value, cmd))
 
             if pval is not None:
                 fcmd = assignValueCmd(allcmds[cmd], pval, term,
-                                    vtype=int, vterm=',')
+                                      vtype=int, vterm=',')
 
     return fcmd

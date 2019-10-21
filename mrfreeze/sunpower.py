@@ -109,7 +109,7 @@ def brokerAPI(dvice, cmd, value=None):
     else:
         if cmd == 'target':
             fcmd = assignValueCmd(allcmds[cmd], value, term,
-                                    vtype=float, vterm='=')
+                                  vtype=float, vterm='=')
 
         if dvice == "sunpowergen2":
             if cmd == 'stopmode':
@@ -124,11 +124,11 @@ def brokerAPI(dvice, cmd, value=None):
                 else:
                     pval = None
                     print("Unknown value %s for command %s!" %
-                            (value, cmd))
+                          (value, cmd))
 
                 if pval is not None:
                     fcmd = assignValueCmd(allcmds[cmd], pval, term,
-                                        vtype=int, vterm='=')
+                                          vtype=int, vterm='=')
 
             elif cmd == 'stop':
                 # Could have nanny code here to combine with 'stopmode'
@@ -145,10 +145,10 @@ def brokerAPI(dvice, cmd, value=None):
 
                 if pval is not None:
                     fcmd = assignValueCmd(allcmds[cmd], pval, term,
-                                        vtype=int, vterm='=')
+                                          vtype=int, vterm='=')
 
             elif cmd in ['minpwr', 'maxpwr']:
                 fcmd = assignValueCmd(allcmds[cmd], value, term,
-                                        vtype=float, vterm='=')
+                                      vtype=float, vterm='=')
 
     return fcmd

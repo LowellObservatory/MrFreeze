@@ -46,6 +46,7 @@ def with_logging(func):
         return result
     return wrapper
 
+
 @with_logging
 def job1(arg1, arg2, arg3=False):
     """

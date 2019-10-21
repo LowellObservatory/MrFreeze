@@ -97,6 +97,10 @@ if __name__ == "__main__":
                 queueActions = amqlistener.emptyQueue()
                 print("%d items obtained from the queue" % (len(queueActions)))
 
+                # Assemble our schedule of upcoming actions
+
+
+
                 # Do some stuff!
                 for action in queueActions:
                     print("Doing action...")

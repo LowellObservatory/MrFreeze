@@ -69,7 +69,7 @@ def queryAllDevices(config, amqs, idbs, debug=False):
                 # Now send the commands
                 try:
                     reply = scomm.serComm(dvice.devhost, dvice.devport,
-                                        msgs, debug=debug)
+                                          msgs, debug=debug)
                 except serial.SerialException as err:
                     print("Badness 10000")
                     print(str(err))
@@ -79,16 +79,16 @@ def queryAllDevices(config, amqs, idbs, debug=False):
                     if reply is not None:
                         if dvice.devtype.lower() == 'vactransducer_mks972b':
                             pubs.publish_MKS972b(dvice, reply,
-                                                db=dbObj, broker=bkObj,
-                                                debug=debug)
+                                                 db=dbObj, broker=bkObj,
+                                                 debug=debug)
                         elif dvice.devtype.lower() in sunpowerset:
                             pubs.publish_Sunpower(dvice, reply,
-                                                db=dbObj, broker=bkObj,
-                                                debug=debug)
+                                                  db=dbObj, broker=bkObj,
+                                                  debug=debug)
                         elif dvice.devtype.lower() in lsset:
                             pubs.publish_LSThing(dvice, reply,
-                                                db=dbObj, broker=bkObj,
-                                                debug=debug)
+                                                 db=dbObj, broker=bkObj,
+                                                 debug=debug)
                 except Exception as err:
                     print("Unable to parse instrument response!")
                     print(str(err))
