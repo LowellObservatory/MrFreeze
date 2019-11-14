@@ -13,7 +13,9 @@ from __future__ import division, print_function, absolute_import
 import os
 import sys
 import time
+from datetime import datetime
 
+import schedule
 from pid import PidFile, PidFileError
 
 from mrfreeze import actions, listener, publishers
@@ -38,7 +40,7 @@ if __name__ == "__main__":
     eargs = None
 
     # Interval between successive runs of the polling loop (seconds)
-    bigsleep = 60
+    bigsleep = 5
 
     # config: dictionary of parsed config file
     # comm: common block from config file
@@ -84,6 +86,14 @@ if __name__ == "__main__":
             conn = amqs['broker-dct'][0]
             queue = comm['queue-mrfreeze']
 
+            # Assemble our *initial* schedule of actions. This will be adjusted
+            #   by any inputs from the broker once we're in the main loop
+            sched = schedule.Scheduler()
+            for inst in allInsts:
+                sched = actions.scheduleDevices(sched, allInsts[inst],
+                                                amqs, idbs,
+                                                debug=True)
+
             # Semi-infinite loop
             while runner.halt is False:
                 # Check on our connections
@@ -91,15 +101,18 @@ if __name__ == "__main__":
                 # Make sure we update our hardcoded reference
                 conn = amqs['broker-dct'][0]
 
+                # Check for any actions, and do them if it's their time
+                print("Checking schedule for pending tasks...")
+                sched.run_pending()
+                for job in sched.jobs:
+                    remaining = (job.next_run - datetime.now()).total_seconds()
+                    print("    %s in %f seconds" % (job.tags, remaining))
+
                 # Check for any updates to those actions, or any commanded
                 #   actions in general
                 print("Cleaning out the queue...")
                 queueActions = amqlistener.emptyQueue()
                 print("%d items obtained from the queue" % (len(queueActions)))
-
-                # Assemble our schedule of upcoming actions
-
-
 
                 # Do some stuff!
                 for action in queueActions:
@@ -158,19 +171,7 @@ if __name__ == "__main__":
                 # Diagnostic output
                 nleft = len(amqlistener.brokerQueue.items())
                 print("%d items still in the queue" % (nleft))
-
-                for inst in allInsts:
-                    print("Processing instrument %s" % (inst))
-                    # It could be that all the devices of this instrument
-                    #   are actually disabled; the query function will
-                    #   check before actually querying though, since that
-                    #   can change from loop-to-loop depending on the above
-                    #   queueActions
-                    actions.queryAllDevices(allInsts[inst],
-                                            amqs, idbs,
-                                            debug=True)
-
-                print("Done stuff!")
+                print("Done for now!")
 
                 # Consider taking a big nap
                 if runner.halt is False:
