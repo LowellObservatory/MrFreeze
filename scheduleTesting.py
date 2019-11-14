@@ -17,7 +17,6 @@ from __future__ import division, print_function, absolute_import
 
 import time
 import functools
-from datetime import timedelta
 
 import schedule
 
