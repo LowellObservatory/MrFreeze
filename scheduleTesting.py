@@ -63,30 +63,39 @@ def job2(arg1, arg2, arg3=False):
     print(1/0)
 
 
+def makeSchedule(s, defInt):
+    """
+    """
+    s.every(defInt).seconds.do(job1, "cheese", "checkers").tag("LMI")
+    s.every(defInt).seconds.do(job2, "rats", "potatoes").tag("NIHTS")
+
+    return s
+
+
 if __name__ == "__main__":
     naptime = 30.
 
     defInt = 10
 
-    schedule.every(defInt).seconds.do(job1, "cheese", "checkers").tag("LMI")
-    schedule.every(defInt).seconds.do(job2, "rats", "potatoes").tag("NIHTS")
+    sObj = schedule.Scheduler()
+    sObj = makeSchedule(sObj, defInt)
 
     adjusted = False
 
     while True:
-        for job in schedule.jobs:
+        for job in sObj.jobs:
             print(job)
 
         i = 0
         while i <= naptime-1:
-            schedule.run_pending()
+            sObj.run_pending()
             print("Checked schedule for pending tasks, napped for %d" % (i+1))
 
             time.sleep(1)
             i += 1
 
         if adjusted is False:
-            schedule.clear('LMI')
-            schedule.every(30).seconds.do(job1, "cheese", "checkers").tag("LMI")
+            sObj.clear('LMI')
+            sObj.every(30).seconds.do(job1, "cheese", "checkers").tag("LMI")
 
             adjusted = True
