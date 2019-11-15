@@ -108,7 +108,7 @@ def scheduleDevices(sched, config, amqs, idbs, debug=False):
     #   time.  That won't fly, so we'll offset them by a small amount to
     #   account for the actual time needed to send/process the reply and
     #   then move on to the next scheduled action!
-    temporalOffset = 3
+    temporalOffset = 2
 
     # Loop thru the different instrument sets
     for vice in config:
