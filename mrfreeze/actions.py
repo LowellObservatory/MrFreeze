@@ -121,8 +121,11 @@ def scheduleDevices(sched, config, amqs, idbs, debug=False):
                 sched.every(interval).seconds.do(cmd_loisgettemp,
                                                  dvice, bkObj).tag(schedTags)
             else:
-                print("Sending a serial command")
-                # cmd_serial(dvice, dbObj, bkObj, debug=debug)
+                print("Scheduling '%s' for %s every %d seconds" %
+                      (dvice.devtype, dvice.instrument, interval))
+                sched.every(interval).seconds.do(cmd_serial,
+                                                 dvice, dbObj, bkObj,
+                                                 debug=debug).tag(schedTags)
 
             # If we're in here, we scheduled an action. Pause before our next
             #   one to make sure they don't stack up too close. Do it in *here*
