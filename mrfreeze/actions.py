@@ -16,15 +16,38 @@ Further description.
 from __future__ import division, print_function, absolute_import
 
 import time
+import functools
+
 import serial
+import schedule
 
 from . import devices
 from . import publishers as pubs
 from . import serialcomm as scomm
 
 
+def catch_exceptions(cancel_on_failure=False):
+    """
+    Decorator ... does what's on the tin
+    """
+    def catch_exceptions_decorator(job_func):
+        @functools.wraps(job_func)
+        def wrapper(*args, **kwargs):
+            try:
+                return job_func(*args, **kwargs)
+            except Exception:
+                import traceback
+                print(traceback.format_exc())
+                if cancel_on_failure:
+                    return schedule.CancelJob
+        return wrapper
+    return catch_exceptions_decorator
+
+
+@catch_exceptions(cancel_on_failure=False)
 def cmd_serial(dvice, dbObj, bkObj, debug=False):
     """
+    Define and route messages to/from serial attached devices
     """
     # Some quick defines:
     # Supported Sunpower Cryocooler devices
@@ -64,14 +87,16 @@ def cmd_serial(dvice, dbObj, bkObj, debug=False):
         print(str(err))
 
 
+@catch_exceptions(cancel_on_failure=False)
 def cmd_loisgettemp(dvice, bkObj):
     """
+    Periodically send messages to the broker at bkObj to LOIS to 'gettemp'
+
+    This is really all there is; the reply is monitored in the STOMP listener
+    defined in the main calling code, and since STOMP runs that in its own
+    thread it'll happen in the background compared to this loop here.
     """
     cmd = 'gettemp'
-    # This is really all there is; the reply is monitored in the
-    #   STOMP listener defined in the main calling code, and
-    #   since STOMP runs that in its own thread it'll happen in
-    #   the background compared to this loop here.
     print("Sending %s to broker topic %s" % (cmd, dvice.devbrokercmd))
     bkObj.publish(dvice.devbrokercmd, cmd)
 
@@ -138,34 +163,62 @@ def scheduleDevices(sched, config, amqs, idbs, debug=False):
     return sched
 
 
-def queryAllDevices(config, amqs, idbs, debug=False):
+def queueProcessor(queueActions, allInsts, conn, queue):
     """
     """
-    # Loop thru the different instrument sets
-    for vice in config:
-        dvice = config[vice]
+    # Do some stuff!
+    for action in queueActions:
+        # Parse the incoming action by hand since it's a simple deal
+        ainst = action['request_instrument']
+        adevc = action['request_device']
+        atag = action['request_tag']
+        acmd = action['request_command']
+        aarg = action['request_argument']
 
-        # Check to make sure this device's query is actually set as enabled
-        if dvice.enabled is True:
-            # Get our specific database connection object
-            try:
-                dbObj = idbs[dvice.database]
-            except KeyError:
-                dbObj = None
+        # Do a simple check to see if it's a command for Nora
+        if acmd.lower() == 'advertise':
+            print("Advertising the current actions...")
+            adpacket = pubs.advertiseConfiged(allInsts)
+            conn.publish(queue.replytopic, adpacket)
 
-            # Now try to get our broker connection object
-            try:
-                # [1] is the listener, and we don't need that at this point
-                bkObj = amqs[dvice.broker][0]
-            except KeyError:
-                bkObj = None
-
-            # SPECIAL handling for this one, since it's not a serial device
-            #   but a broker command topic
-            if dvice.devtype.lower() == 'arc-loisgettemp':
-                cmd_loisgettemp(dvice, bkObj)
-            else:
-                cmd_serial(dvice, dbObj, bkObj, debug=debug)
-
+        if atag is not None:
+            cdest = "%s_%s" % (adevc, atag)
         else:
-            print("Device %s is disabled! Skipping it." % (dvice.devtype))
+            cdest = "%s" % (adevc)
+
+        # Check to see if this destination is one we actually
+        #   know anything about
+        try:
+            selInst = allInsts[ainst][cdest]
+        except AttributeError:
+            print("WARNING: Command %s ignored!" % (acmd))
+            print("Unknown instrument %s" % (cdest))
+            selInst = None
+
+        print(selInst)
+
+        # Now check the actual command
+        if selInst is not None:
+            if acmd.lower() == "queryenable":
+                print("Enabling %s %s" % (ainst, cdest.lower()))
+                selInst.enabled = True
+            elif acmd.lower() == "querydisable":
+                print("Disabling %s %s" % (ainst, cdest.lower()))
+                selInst.enabled = False
+            elif acmd.lower() == "devicehost":
+                print("Setting device host to %s" % (aarg))
+                selInst.devhost = aarg
+            elif acmd.lower() == "deviceport":
+                print("Setting device port to %s" % (aarg))
+                selInst.devport = aarg
+            else:
+                # Check to see if the command is in the remoteAPI
+                #   that we defined for the devices
+                # https://github.com/LowellObservatory/MrFreeze/issues/8
+                pass
+
+            # Now store this instrument back in the main set,
+            #   so we can use any updates that just happened
+            allInsts[ainst][cdest] = selInst
+
+    return allInsts

@@ -18,7 +18,7 @@ from datetime import datetime
 import schedule
 from pid import PidFile, PidFileError
 
-from mrfreeze import actions, listener, publishers
+from mrfreeze import actions, listener
 from ligmos.workers import workerSetup, connSetup
 from ligmos.utils import amq, common, classes, confparsers
 
@@ -114,59 +114,9 @@ if __name__ == "__main__":
                 queueActions = amqlistener.emptyQueue()
                 print("%d items obtained from the queue" % (len(queueActions)))
 
-                # Do some stuff!
-                for action in queueActions:
-                    print("Doing action...")
-                    ainst = action['request_instrument']
-                    adevc = action['request_device']
-                    atag = action['request_tag']
-                    acmd = action['request_command']
-                    aarg = action['request_argument']
-
-                    # Do a simple check to see if it's a command for Nora
-                    if acmd.lower() == 'advertise':
-                        print("Advertising the current actions...")
-                        adpacket = publishers.advertiseConfiged(allInsts)
-                        conn.publish(queue.replytopic, adpacket)
-
-                    if atag is not None:
-                        cdest = "%s_%s" % (adevc, atag)
-                    else:
-                        cdest = "%s" % (adevc)
-
-                    # Check to see if this destination is one we actually
-                    #   know anything about
-                    try:
-                        selInst = allInsts[ainst][cdest]
-                    except AttributeError:
-                        print("WARNING: Command %s ignored!" % (acmd))
-                        print("Unknown instrument %s" % (cdest))
-                        selInst = None
-
-                    print(selInst)
-
-                    # Now check the actual command
-                    if selInst is not None:
-                        if acmd.lower() == "queryenable":
-                            print("Enabling %s %s" % (ainst, cdest.lower()))
-                            selInst.enabled = True
-                        elif acmd.lower() == "querydisable":
-                            print("Disabling %s %s" % (ainst, cdest.lower()))
-                            selInst.enabled = False
-                        elif acmd.lower() == "devicehost":
-                            print("Setting device host to %s" % (aarg))
-                            selInst.devhost = aarg
-                        elif acmd.lower() == "deviceport":
-                            print("Setting device port to %s" % (aarg))
-                            selInst.devport = aarg
-                        else:
-                            # Check to see if the command is in the remoteAPI
-                            #   that we defined for the devices
-                            pass
-
-                        # Now store this instrument back in the main set,
-                        #   so we can use any updates that just happened
-                        allInsts[ainst][cdest] = selInst
+                # Process and deal with the things in the queue
+                allInsts = actions.queueProcessor(queueActions, allInsts,
+                                                  conn, queue)
 
                 # Diagnostic output
                 nleft = len(amqlistener.brokerQueue.items())
