@@ -4,7 +4,7 @@ FROM pytest
 
 USER lig:lig
 WORKDIR /home/lig/Codes/
-COPY --chown=lig:lig ./MrFreeze MrFreeze/
+COPY --chown=lig:lig . MrFreeze/
 WORKDIR /home/lig/Codes/MrFreeze
 
 CMD ["python Nora.py"]
