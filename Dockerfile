@@ -3,8 +3,6 @@
 FROM pytest
 
 USER lig:lig
-RUN mkdir /home/lig/logs && mkdir /home/lig/conf
-
 WORKDIR /home/lig/Codes/
 COPY --chown=lig:lig . MrFreeze/
 WORKDIR /home/lig/Codes/MrFreeze
