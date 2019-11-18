@@ -53,7 +53,7 @@ if __name__ == "__main__":
                                                         extraargs=eargs,
                                                         conftype=deviceconf,
                                                         enableCheck=False,
-                                                        logfile=False)
+                                                        logfile=True)
 
     # Reorganize the configuration to be per-instrument so it's a little
     #   easier to loop over and do other stuff with
