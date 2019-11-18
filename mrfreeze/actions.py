@@ -116,6 +116,12 @@ def scheduleDevices(sched, config, amqs, idbs, debug=False):
 
         # Check to make sure this device's query is actually set as enabled
         if dvice.enabled is True:
+            if debug is True:
+                print("Beginning scheduling of %s+%s+%s" % (dvice.instrument,
+                                                            dvice.devtype,
+                                                            dvice.extratag))
+                print(dvice)
+
             # Set up some easy-access things for the scheduler
             #   schedTags *must* be hashable, so it can't be a list and it's
             #   easier to make it specific so it can be sensibly cancelled
