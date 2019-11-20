@@ -15,6 +15,7 @@ Further description.
 
 from __future__ import division, print_function, absolute_import
 
+from datetime import datetime as dt
 from collections import OrderedDict
 
 
@@ -24,6 +25,9 @@ class upfileNIHTS():
     def __init__(self, debug=False):
         self.debug = debug
         defaultValue = -9999.
+        defaultDate = dt.strptime("20190107T02:10:00.00",
+                                  "%Y%m%dT%H:%M:%S.%f")
+
         keys = OrderedDict({"NIHTS1_cooler": sunpowercooler(),
                             "NIHTS2_cooler": sunpowercooler(),
                             "NIHTS_Lakeshore218": ls218(),
@@ -34,7 +38,7 @@ class upfileNIHTS():
         for key in keys:
             # Set up the values for this section
             sectVals = OrderedDict()
-            sectVals.update({"sectTimestamp": defaultValue})
+            sectVals.update({"sectTimestamp": defaultDate})
             if debug is True:
                 print(key)
 
@@ -66,25 +70,92 @@ class upfileNIHTS():
         It's a very specific format, shown below.
 
         Here's the format we're trying to recreate:
-        { { { NIHTS1_cooler } {20191115 21:03:34} {
-            { TempK 054.99 } { Setpt 055.00 }
-            { Maxpow 240.00 } { Minpow 070.00 } { Meanpow 128.37 } } }
-        { { NIHTS2_cooler } {20191115 21:03:50} {
-            { TempK 064.99 } { Setpt 065.00 }
-            { Maxpow 240.00 } { Minpow 070.00 } { Meanpow 138.91 } } }
-        { { NIHTS_Lakeshore218 } {20191115 21:04:00} {
-            { SINK1 +293.36 } { SINK2 +293.15 } { DEWAR +289.56 }
-            { FLSHLD +236.62 } { DETBK +83.399 } { BENCH +91.662 }
-            { PRISM +90.939 } { INSTRAP +56.716 } } }
-        { { NIHTS_Lakeshore325 } {20191115 21:04:12} {
-            { GETTER +59.215 } { GSETPT +333.00 } { GHEAT +00.00 }
-            { DETECTOR +75.000 } { DSETPT +75.000 } { DHEAT +00.54 } } }
-        { { NIHTS_vacgauge } {20191115 21:00:00} { { Torr 1.00E-8 } } } }
+        {
+          {
+            { NIHTS1_cooler } {20191115 21:03:34} {
+              { TempK 054.99 } { Setpt 055.00 }
+              { Maxpow 240.00 } { Minpow 070.00 } { Meanpow 128.37 }
+            }
+          }
+          {
+            { NIHTS2_cooler } {20191115 21:03:50} {
+              { TempK 064.99 } { Setpt 065.00 }
+              { Maxpow 240.00 } { Minpow 070.00 } { Meanpow 138.91 }
+            }
+          }
+          {
+            { NIHTS_Lakeshore218 } {20191115 21:04:00} {
+              { SINK1 +293.36 } { SINK2 +293.15 } { DEWAR +289.56 }
+              { FLSHLD +236.62 } { DETBK +83.399 } { BENCH +91.662 }
+              { PRISM +90.939 } { INSTRAP +56.716 }
+            }
+          }
+          {
+            { NIHTS_Lakeshore325 } {20191115 21:04:12} {
+              { GETTER +59.215 } { GSETPT +333.00 } { GHEAT +00.00 }
+              { DETECTOR +75.000 } { DSETPT +75.000 } { DHEAT +00.54 }
+            }
+          }
+          {
+            { NIHTS_vacgauge } {20191115 21:00:00} {
+              { Torr 1.00E-8 }
+            }
+          }
+        }
 
         Worth noting that it *MUST* be all on one line; the newlines above
         are for clarity only.
         """
-        pass
+        tsFormat = "{%Y%m%d %H:%M:%S}"
+        sectBegin = "{ "
+        sectEnd = " }"
+
+        # Ok, here we go
+        finalForm = ""
+        finalForm += sectBegin
+
+        # We'll loop over the properties
+        for sect in self.__dict__:
+            # Skip any/all non-output properties
+            if sect not in ['debug']:
+                sectOutput = sectBegin + sect + sectEnd
+
+                thisSect = getattr(self, sect)
+                if sect == "NIHTS_Lakeshore325":
+                    numFormat = "%+0.2f"
+                else:
+                    numFormat = "%+0.3f"
+
+                for i, subkey in enumerate(thisSect):
+                    if subkey == "sectTimestamp":
+                        tsVal = thisSect["sectTimestamp"]
+                        # Remember that the needed {} are in the tsFormat!
+                        #   (but not the initial space)
+                        sectOutput += " " + tsVal.strftime(tsFormat)
+
+                        # There's another section that begins after timestamp
+                        sectOutput += " " + sectBegin
+                    else:
+                        # Doing this on two lines just for line length control
+                        printedVal = numFormat % (thisSect[subkey])
+
+                        sectOutput += sectBegin + subkey + " "
+                        sectOutput += printedVal
+                        sectOutput += sectEnd
+
+                    if i != len(thisSect) - 1 and i != 0:
+                        sectOutput += " "
+
+                # Finishing up
+                sectOutput += sectEnd
+                finalForm += sectBegin + sectOutput + sectEnd + " "
+
+        # .strip() here because we already put in the space immediately above
+        finalForm += sectEnd.strip()
+        if self.debug is True:
+            print(finalForm)
+
+        return finalForm
 
 
 def vacgauge():
@@ -134,3 +205,4 @@ if __name__ == "__main__":
     upf = upfileNIHTS(debug=True)
     upf.updateSection("poopoo")
     upf.updateSection("NIHTS1_cooler")
+    upf.makeNIHTSUpfile()
