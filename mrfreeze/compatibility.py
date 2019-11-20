@@ -21,6 +21,9 @@ from collections import OrderedDict
 
 class upfileNIHTS():
     """
+    The compatibility layer between Mr. Freeze and the legacy LOIS/moxad setup
+    that is needed because of the "upfile" arrangement that Peter made
+    for NIHTS; see https://jumar.lowell.edu/confluence/x/PQBCAg
     """
     def __init__(self, debug=False):
         self.debug = debug
@@ -122,9 +125,9 @@ class upfileNIHTS():
 
                 thisSect = getattr(self, sect)
                 if sect == "NIHTS_Lakeshore325":
-                    numFormat = "%+0.2f"
-                else:
                     numFormat = "%+0.3f"
+                else:
+                    numFormat = "%+0.2f"
 
                 for i, subkey in enumerate(thisSect):
                     if subkey == "sectTimestamp":
@@ -203,6 +206,5 @@ def ls325():
 
 if __name__ == "__main__":
     upf = upfileNIHTS(debug=True)
-    upf.updateSection("poopoo")
     upf.updateSection("NIHTS1_cooler")
     upf.makeNIHTSUpfile()
