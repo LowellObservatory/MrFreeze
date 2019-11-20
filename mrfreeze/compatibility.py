@@ -27,10 +27,20 @@ class upfileNIHTS():
     """
     def __init__(self, debug=False):
         self.debug = debug
+
+        # This is for compatibility with actions.scheduleDevices()
+        self.instrument = "NIHTS"
+        self.devtype = 'upfile'
+        self.enabled = True
+
+        # Initial starting values so it's not at least None at the get-go
         defaultValue = -9999.
         defaultDate = dt.strptime("20190107T02:10:00.00",
                                   "%Y%m%dT%H:%M:%S.%f")
 
+        # OrderedDict() to keep the order consistent just in case LOIS
+        #   is hardcoded to the order of things; I didn't check if that's
+        #   actually the case or if I'm too paranoid
         keys = OrderedDict({"NIHTS1_cooler": sunpowercooler(),
                             "NIHTS2_cooler": sunpowercooler(),
                             "NIHTS_Lakeshore218": ls218(),
@@ -55,15 +65,17 @@ class upfileNIHTS():
             # Set the base key
             setattr(self, key, sectVals)
 
-    def updateSection(self, sect):
+    def updateSection(self, sect, fields):
         """
         'sect' must be a string that matches exactly one of the sections
         set up in __init__ otherwise it'll fail.
         """
+        keys = vacgauge()
         if hasattr(self, sect) is False:
             if self.debug is True:
                 print("INVALID SECTION! %s not found" % (sect))
         else:
+            print(fields)
             if self.debug is True:
                 print("VALID SECTION! %s found" % (sect))
 
@@ -126,6 +138,8 @@ class upfileNIHTS():
                 thisSect = getattr(self, sect)
                 if sect == "NIHTS_Lakeshore325":
                     numFormat = "%+0.3f"
+                elif sect in ["NIHTS1_cooler", "NIHTS2_cooler"]:
+                    numFormat = "%0.2f"
                 else:
                     numFormat = "%+0.2f"
 
@@ -202,9 +216,3 @@ def ls325():
                         "heater1": "GHEAT",
                         "heater2": "DHEAT"})
     return defs
-
-
-if __name__ == "__main__":
-    upf = upfileNIHTS(debug=True)
-    upf.updateSection("NIHTS1_cooler")
-    upf.makeNIHTSUpfile()

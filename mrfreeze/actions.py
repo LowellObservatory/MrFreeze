@@ -22,6 +22,7 @@ import serial
 import schedule
 
 from . import devices
+from . import compatibility
 from . import publishers as pubs
 from . import serialcomm as scomm
 
@@ -45,7 +46,7 @@ def catch_exceptions(cancel_on_failure=False):
 
 
 @catch_exceptions(cancel_on_failure=False)
-def cmd_serial(dvice, dbObj, bkObj, debug=False):
+def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
     """
     Define and route messages to/from serial attached devices
     """
@@ -70,18 +71,20 @@ def cmd_serial(dvice, dbObj, bkObj, debug=False):
 
     try:
         if reply is not None:
+            if dvice.instrument == "NIHTS" and hasattr(dvice, "upfile"):
+                compat = dvice.upfile
+            else:
+                compat = None
+
             if dvice.devtype.lower() == 'vactransducer_mks972b':
-                pubs.publish_MKS972b(dvice, reply,
-                                     db=dbObj, broker=bkObj,
-                                     debug=debug)
+                pubs.publish_MKS972b(dvice, reply, db=dbObj, broker=bkObj,
+                                     compat=compat, debug=debug)
             elif dvice.devtype.lower() in sunpowerset:
-                pubs.publish_Sunpower(dvice, reply,
-                                      db=dbObj, broker=bkObj,
-                                      debug=debug)
+                pubs.publish_Sunpower(dvice, reply, db=dbObj, broker=bkObj,
+                                      compat=compat, debug=debug)
             elif dvice.devtype.lower() in lsset:
-                pubs.publish_LSThing(dvice, reply,
-                                     db=dbObj, broker=bkObj,
-                                     debug=debug)
+                pubs.publish_LSThing(dvice, reply, db=dbObj, broker=bkObj,
+                                     compat=compat, debug=debug)
     except Exception as err:
         print("Unable to parse instrument response!")
         print(str(err))
@@ -114,13 +117,16 @@ def scheduleDevices(sched, config, amqs, idbs, debug=False):
     for vice in config:
         dvice = config[vice]
 
+        if dvice.instrument == "NIHTS":
+            # Hack in NIHTS upfile compatibility as an extra config object
+            setattr(dvice, "upfile", compatibility.upfileNIHTS())
+
         # Check to make sure this device's query is actually set as enabled
         if dvice.enabled is True:
             if debug is True:
                 print("Beginning scheduling of %s+%s+%s" % (dvice.instrument,
                                                             dvice.devtype,
                                                             dvice.extratag))
-                print(dvice)
 
             # Set up some easy-access things for the scheduler
             #   schedTags *must* be hashable, so it can't be a list and it's

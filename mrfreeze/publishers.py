@@ -152,7 +152,8 @@ def makeAndPublishIDB(measname, fields, db, tags, table, debug=False):
         db.singleCommit(pkt, table=table, close=True)
 
 
-def publish_LSThing(dvice, replies, db=None, broker=None, debug=False):
+def publish_LSThing(dvice, replies, db=None, broker=None, compat=None,
+                    debug=False):
     """
     as defined in serComm:
 
@@ -187,7 +188,8 @@ def publish_LSThing(dvice, replies, db=None, broker=None, debug=False):
                           debug=debug)
 
 
-def publish_Sunpower(dvice, replies, db=None, broker=None, debug=False):
+def publish_Sunpower(dvice, replies, db=None, broker=None, compat=None,
+                     debug=False):
     """
     Parse our Sunpower stuff; as defined in serComm:
 
@@ -221,7 +223,8 @@ def publish_Sunpower(dvice, replies, db=None, broker=None, debug=False):
                           debug=debug)
 
 
-def publish_MKS972b(dvice, replies, db=None, broker=None, debug=False):
+def publish_MKS972b(dvice, replies, db=None, broker=None, compat=None,
+                    debug=False):
     """
     Parse our MKS specific stuff; as defined in serComm:
 
@@ -246,3 +249,6 @@ def publish_MKS972b(dvice, replies, db=None, broker=None, debug=False):
                           debug=debug)
         makeAndPublishIDB(measname, fields, db, tags, dvice.tablename,
                           debug=debug)
+
+        if compat is not None:
+            compat.updateSection("NIHTS_vacgauge", fields)
