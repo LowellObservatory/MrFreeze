@@ -79,3 +79,6 @@ TopicSnooper.py
 
 # Some old stuff that doesn't need control but I want to keep locally
 cooler/
+
+# Log files
+*.log.????-??-??

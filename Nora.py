@@ -18,9 +18,10 @@ from datetime import datetime
 import schedule
 from pid import PidFile, PidFileError
 
-from mrfreeze import actions, listener
 from ligmos.workers import workerSetup, connSetup
 from ligmos.utils import amq, common, classes, confparsers
+
+from mrfreeze import actions, listener
 
 
 if __name__ == "__main__":
@@ -71,7 +72,7 @@ if __name__ == "__main__":
 
             # UGH more hardcoding. Someone more clever than I can clean up.
             db = idbs['database-dct']
-            amqlistener = listener.MrFreezeCommandConsumer(db=db)
+            amqlistener = listener.MrFreezeConsumer(db=db)
 
             # Specify our custom listener that will really do all the work
             #   Since we're hardcoding for the DCTConsumer anyways, I'll take

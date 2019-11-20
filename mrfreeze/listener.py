@@ -29,7 +29,7 @@ from . import parsers
 from . import publishers
 
 
-class MrFreezeCommandConsumer(ConnectionListener):
+class MrFreezeConsumer(ConnectionListener):
     def __init__(self, db=None):
         """
         This is just to route the messages to the right parsers
