@@ -15,19 +15,68 @@ Further description.
 
 from __future__ import division, print_function, absolute_import
 
+from collections import OrderedDict
+
 
 class upfileNIHTS():
     """
-    This is the absolute starting point for the NIHTS upfile; further updates
-    will change the relevant parts of this, which is then periodically
-    written to disk and transferred for the NIHTS LOIS to access.
+    Contains the mapping between cryo-device channels/sensors and
+    physical objects in/on the instrument.
 
-    This should also have a method to actually make/return the string
-    representation of the upfile, so it can be easily written to disk
-    and/or transferred to the proper place so LOIS can see it.
+    These are used in the NIHTS "upfile" and that's why there're in here.
     """
     def __init__(self):
-        pass
+        """
+        cooler 1 == detector cooler
+        cooler 2 == bench cooler
+        """
+        self.cooler1 = {"NIHTS1_cooler": self.sunpowercooler()}
+        self.cooler2 = {"NIHTS2_cooler": self.sunpowercooler()}
+        self.temps_bch = {"NIHTS_Lakeshore218": self.ls218()}
+        self.temps_det = {"NIHTS_Lakeshore325": self.ls325()}
+        self.vacuum = {"NIHTS_vacgauge": self.vacgauge()}
+
+    def vacgauge(self):
+        """
+        (This one doesn't really need to be checked)
+        """
+        return {"cmb4digit": "Torr"}
+
+    def sunpowercooler(self):
+        """
+        """
+        defs = OrderedDict({"coldtiptemp": "TempK",
+                            "ttarget": "Setpt",
+                            "maxpower": "Maxpow",
+                            "minpower": "Minpow",
+                            "actualpower": "Meanpow"})
+        return defs
+
+    def ls218(self):
+        """
+        Last checked for accuracy: 20191119 RTH
+        """
+        defs = OrderedDict({"sensor1": "SINK1",
+                            "sensor2": "SINK2",
+                            "sensor3": "DEWAR",
+                            "sensor4": "FLSHLD",
+                            "sensor5": "DETBRK",
+                            "sensor6": "BENCH",
+                            "sensor7": "PRISM",
+                            "sensor8": "INSTRAP"})
+        return defs
+
+    def ls325(self):
+        """
+        Last checked for accuracy: 20191119 RTH
+        """
+        defs = OrderedDict({"sensortempa": "GETTER",
+                            "sensortempb": "DETECTOR",
+                            "setpoint1": "GSETPT",
+                            "setpoint2": "DSETPT",
+                            "heater1": "GHEAT",
+                            "heater2": "DHEAT"})
+        return defs
 
 
 def makeNIHTSUpfile():
@@ -37,11 +86,11 @@ def makeNIHTSUpfile():
 
     Here's the format we're trying to recreate:
     { { { NIHTS1_cooler } {20191115 21:03:34} {
-        { TempK 054.99 } { Setpt 055.00 } { Maxpow 240.00 } { Minpow 070.00 }
-        { Meanpow 128.37 } } }
+        { TempK 054.99 } { Setpt 055.00 }
+        { Maxpow 240.00 } { Minpow 070.00 } { Meanpow 128.37 } } }
       { { NIHTS2_cooler } {20191115 21:03:50} {
-        { TempK 064.99 } { Setpt 065.00 } { Maxpow 240.00 } { Minpow 070.00 }
-        { Meanpow 138.91 } } }
+        { TempK 064.99 } { Setpt 065.00 }
+        { Maxpow 240.00 } { Minpow 070.00 } { Meanpow 138.91 } } }
     { { NIHTS_Lakeshore218 } {20191115 21:04:00} {
         { SINK1 +293.36 } { SINK2 +293.15 } { DEWAR +289.56 }
         { FLSHLD +236.62 } { DETBK +83.399 } { BENCH +91.662 }
