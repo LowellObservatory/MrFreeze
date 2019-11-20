@@ -74,7 +74,7 @@ def serComm(host, port, cmds, debug=False):
     """
     allreplies = {}
     hosturl = "socket://%s:%s" % (host, port)
-    with serial.serial_for_url(hosturl, write_timeout=2., timeout=2.) as ser:
+    with serial.serial_for_url(hosturl, write_timeout=1., timeout=1.) as ser:
         if isinstance(cmds, dict):
             # NOTE: cmds should be a dict mapping a description to the
             #   actual command string that is sent. The description is
