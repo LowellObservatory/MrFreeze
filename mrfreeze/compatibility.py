@@ -41,14 +41,14 @@ class upfileNIHTS():
         # OrderedDict() to keep the order consistent just in case LOIS
         #   is hardcoded to the order of things; I didn't check if that's
         #   actually the case or if I'm too paranoid
-        keys = OrderedDict({"NIHTS1_cooler": sunpowercooler(),
-                            "NIHTS2_cooler": sunpowercooler(),
-                            "NIHTS_Lakeshore218": ls218(),
-                            "NIHTS_Lakeshore325": ls325(),
-                            "NIHTS_vacgauge": vacgauge()})
+        self.xkeys = OrderedDict({"NIHTS1_cooler": sunpowercooler(),
+                                  "NIHTS2_cooler": sunpowercooler(),
+                                  "NIHTS_Lakeshore218": ls218(),
+                                  "NIHTS_Lakeshore325": ls325(),
+                                  "NIHTS_vacgauge": vacgauge()})
 
         # Loop through the sections defined above
-        for key in keys:
+        for key in self.xkeys:
             # Set up the values for this section
             sectVals = OrderedDict()
             sectVals.update({"sectTimestamp": defaultDate})
@@ -56,8 +56,8 @@ class upfileNIHTS():
                 print(key)
 
             # Now fill in all the rest
-            for subkey in keys[key]:
-                outputKey = keys[key][subkey]
+            for subkey in self.xkeys[key]:
+                outputKey = self.xkeys[key][subkey]
                 if debug is True:
                     print("\t", subkey, outputKey)
                 sectVals.update({outputKey: defaultValue})
@@ -70,14 +70,35 @@ class upfileNIHTS():
         'sect' must be a string that matches exactly one of the sections
         set up in __init__ otherwise it'll fail.
         """
-        keys = vacgauge()
         if hasattr(self, sect) is False:
             if self.debug is True:
                 print("INVALID SECTION! %s not found" % (sect))
         else:
-            print(fields)
             if self.debug is True:
                 print("VALID SECTION! %s found" % (sect))
+
+            print(fields)
+
+            print("Updating NIHTS upfile section %s" % (sect))
+            datakeys = self.xkeys[sect]
+
+            # Need this because we need to programatically access
+            #   the section which was given as an argument
+            updated = getattr(self, sect)
+            # Update the section timestamp
+            updated['sectTimestamp'] = dt.strptime(fields['TimestampUTC'],
+                                                   "%Y-%m-%dT%H:%M:%S.%f")
+
+            for field in fields:
+                try:
+                    translation = datakeys[field]
+                    updated[translation] = fields[field]
+                except KeyError:
+                    print("Field %s not in upfile translation!" % (field))
+                    translation = None
+
+            upfile = self.makeNIHTSUpfile()
+            print(upfile)
 
     def makeNIHTSUpfile(self):
         """
@@ -129,17 +150,21 @@ class upfileNIHTS():
         finalForm = ""
         finalForm += sectBegin
 
+        skipableSections = ['debug', 'devtype',
+                            'enabled', 'instrument', 'xkeys']
+
         # We'll loop over the properties
         for sect in self.__dict__:
             # Skip any/all non-output properties
-            if sect not in ['debug']:
+            if sect not in skipableSections:
                 sectOutput = sectBegin + sect + sectEnd
-
                 thisSect = getattr(self, sect)
                 if sect == "NIHTS_Lakeshore325":
                     numFormat = "%+0.3f"
                 elif sect in ["NIHTS1_cooler", "NIHTS2_cooler"]:
                     numFormat = "%0.2f"
+                elif sect == "NIHTS_vacgauge":
+                    numFormat = "%.4e"
                 else:
                     numFormat = "%+0.2f"
 
@@ -177,42 +202,52 @@ class upfileNIHTS():
 
 def vacgauge():
     """
+    Unfortunately, case here matters.
+
     (This one doesn't really need to be checked)
     """
-    return {"cmb4digit": "Torr"}
+    return {"CMB4Digit": "Torr"}
+
 
 def sunpowercooler():
     """
+    Unfortunately, case here matters.
     """
-    defs = OrderedDict({"coldtiptemp": "TempK",
-                        "ttarget": "Setpt",
-                        "maxpower": "Maxpow",
-                        "minpower": "Minpow",
-                        "actualpower": "Meanpow"})
+    defs = OrderedDict({"ColdTipTemp": "TempK",
+                        "TTARGET": "Setpt",
+                        "MaxPower": "Maxpow",
+                        "MinPower": "Minpow",
+                        "ActualPower": "Meanpow"})
     return defs
+
 
 def ls218():
     """
+    Unfortunately, case here matters.
+
     Last checked for accuracy: 20191119 RTH
     """
-    defs = OrderedDict({"sensor1": "SINK1",
-                        "sensor2": "SINK2",
-                        "sensor3": "DEWAR",
-                        "sensor4": "FLSHLD",
-                        "sensor5": "DETBRK",
-                        "sensor6": "BENCH",
-                        "sensor7": "PRISM",
-                        "sensor8": "INSTRAP"})
+    defs = OrderedDict({"Sensor1": "SINK1",
+                        "Sensor2": "SINK2",
+                        "Sensor3": "DEWAR",
+                        "Sensor4": "FLSHLD",
+                        "Sensor5": "DETBRK",
+                        "Sensor6": "BENCH",
+                        "Sensor7": "PRISM",
+                        "Sensor8": "INSTRAP"})
     return defs
+
 
 def ls325():
     """
+    Unfortunately, case here matters.
+
     Last checked for accuracy: 20191119 RTH
     """
-    defs = OrderedDict({"sensortempa": "GETTER",
-                        "sensortempb": "DETECTOR",
-                        "setpoint1": "GSETPT",
-                        "setpoint2": "DSETPT",
-                        "heater1": "GHEAT",
-                        "heater2": "DHEAT"})
+    defs = OrderedDict({"SensorTempA": "GETTER",
+                        "SensorTempB": "DETECTOR",
+                        "Setpoint1": "GSETPT",
+                        "Setpoint2": "DSETPT",
+                        "Heater1": "GHEAT",
+                        "Heater2": "DHEAT"})
     return defs
