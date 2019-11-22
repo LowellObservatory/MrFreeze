@@ -97,9 +97,6 @@ class upfileNIHTS():
                     print("Field %s not in upfile translation!" % (field))
                     translation = None
 
-            upfile = self.makeNIHTSUpfile()
-            print(upfile)
-
     def makeNIHTSUpfile(self):
         """
         Create the NIHTS "upfile" that LOIS needs for the FITS headers.

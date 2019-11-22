@@ -187,6 +187,16 @@ def publish_LSThing(dvice, replies, db=None, broker=None, compat=None,
         makeAndPublishIDB(measname, fields, db, tags, dvice.tablename,
                           debug=debug)
 
+        if compat is not None:
+            if modelno == 218:
+                sect = "NIHTS_Lakeshore218"
+            elif modelno == 325:
+                sect = "NIHTS_Lakeshore325"
+
+            compat.updateSection(sect, fields)
+
+    return compat
+
 
 def publish_Sunpower(dvice, replies, db=None, broker=None, compat=None,
                      debug=False):
@@ -222,6 +232,18 @@ def publish_Sunpower(dvice, replies, db=None, broker=None, compat=None,
         makeAndPublishIDB(measname, fields, db, tags, dvice.tablename,
                           debug=debug)
 
+        if compat is not None:
+            # Since there are two coolers, we need to check which is which
+            #   based on the extratag we gave it
+            if dvice.extratag == "BenchCooler":
+                sect = "NIHTS2_cooler"
+            elif dvice.extratag == "DetectorCooler":
+                sect = "NIHTS1_cooler"
+
+            compat.updateSection(sect, fields)
+
+    return compat
+
 
 def publish_MKS972b(dvice, replies, db=None, broker=None, compat=None,
                     debug=False):
@@ -252,3 +274,5 @@ def publish_MKS972b(dvice, replies, db=None, broker=None, compat=None,
 
         if compat is not None:
             compat.updateSection("NIHTS_vacgauge", fields)
+
+    return compat
