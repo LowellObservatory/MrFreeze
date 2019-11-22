@@ -46,7 +46,7 @@ def catch_exceptions(cancel_on_failure=False):
 
 
 @catch_exceptions(cancel_on_failure=False)
-def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
+def cmd_serial(dvice, dbObj, bkObj, debug=False):
     """
     Define and route messages to/from serial attached devices
     """
@@ -56,6 +56,11 @@ def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
 
     # Supported Lake Shore devices
     lsset = ['lakeshore218', 'lakeshore325']
+
+    try:
+        compat = dvice.upfile
+    except AttributeError:
+        compat = None
 
     # Go and get commands that are valid for the device
     msgs = devices.defaultQueryCommands(device=dvice.devtype)
@@ -71,11 +76,6 @@ def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
 
     try:
         if reply is not None:
-            if dvice.instrument == "NIHTS" and hasattr(dvice, "upfile"):
-                compat = dvice.upfile
-            else:
-                compat = None
-
             if dvice.devtype.lower() == 'vactransducer_mks972b':
                 c = pubs.publish_MKS972b(dvice, reply,
                                          db=dbObj, broker=bkObj,
@@ -128,6 +128,8 @@ def scheduleDevices(sched, config, amqs, idbs, debug=False):
         if dvice.instrument == "NIHTS":
             # Hack in NIHTS upfile compatibility as an extra config object
             setattr(dvice, "upfile", compatibility.upfileNIHTS())
+        else:
+            setattr(dvice, "upfile", None)
 
         # Check to make sure this device's query is actually set as enabled
         if dvice.enabled is True:
