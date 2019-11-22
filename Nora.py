@@ -21,7 +21,7 @@ from pid import PidFile, PidFileError
 from ligmos.workers import workerSetup, connSetup
 from ligmos.utils import amq, common, classes, confparsers
 
-from mrfreeze import actions, listener
+from mrfreeze import actions, listener, compatibility
 
 
 if __name__ == "__main__":
@@ -61,6 +61,11 @@ if __name__ == "__main__":
     allInsts = confparsers.regroupConfig(config, groupKey='instrument',
                                          ekeys=['devtype', 'extratag'])
 
+    # We need to store our NIHTS compatibility stuff in the above NIHTS
+    #   section, to guarantee that it's shared between all devices for that
+    #   instrument.  So it needs to be in this level!
+    allInsts["nihts"].update({"compatibility": compatibility.upfileNIHTS()})
+
     try:
         with PidFile(pidname=mynameis.lower(), piddir=pidpath) as p:
             # Print the preamble of this particular instance
@@ -90,8 +95,7 @@ if __name__ == "__main__":
             # Assemble our *initial* schedule of actions. This will be adjusted
             #   by any inputs from the broker once we're in the main loop
             sched = schedule.Scheduler()
-            for inst in allInsts:
-                sched = actions.scheduleDevices(sched, allInsts[inst],
+            sched = actions.scheduleInstruments(sched, allInsts,
                                                 amqs, idbs,
                                                 debug=True)
 

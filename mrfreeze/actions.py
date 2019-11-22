@@ -22,7 +22,6 @@ import serial
 import schedule
 
 from . import devices
-from . import compatibility
 from . import publishers as pubs
 from . import serialcomm as scomm
 
@@ -46,7 +45,7 @@ def catch_exceptions(cancel_on_failure=False):
 
 
 @catch_exceptions(cancel_on_failure=False)
-def cmd_serial(dvice, dbObj, bkObj, debug=False):
+def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
     """
     Define and route messages to/from serial attached devices
     """
@@ -56,11 +55,6 @@ def cmd_serial(dvice, dbObj, bkObj, debug=False):
 
     # Supported Lake Shore devices
     lsset = ['lakeshore218', 'lakeshore325']
-
-    try:
-        compat = dvice.upfile
-    except AttributeError:
-        compat = None
 
     # Go and get commands that are valid for the device
     msgs = devices.defaultQueryCommands(device=dvice.devtype)
@@ -90,8 +84,8 @@ def cmd_serial(dvice, dbObj, bkObj, debug=False):
                                          compat=compat, debug=debug)
             if compat is not None:
                 # We need to update the compat property to carry it forward
-                dvice.upfile = c
-                print(dvice.upfile.makeNIHTSUpfile())
+                compat = c
+                print(compat.makeNIHTSUpfile())
 
     except Exception as err:
         print("Unable to parse instrument response!")
@@ -112,75 +106,80 @@ def cmd_loisgettemp(dvice, bkObj):
     bkObj.publish(dvice.devbrokercmd, cmd)
 
 
-def scheduleDevices(sched, config, amqs, idbs, debug=False):
+def scheduleInstruments(sched, allInsts, amqs, idbs, debug=False):
     """
     """
-    # This happens quick, so all the actions will be piled up in scheduled
-    #   time.  That won't fly, so we'll offset them by a small amount to
+    # Scheduling of individual devices happens fast, so all the actions
+    #   will be piled up in scheduled time.  Offset them by a small amount to
     #   account for the actual time needed to send/process the reply and
     #   then move on to the next scheduled action!
     temporalOffset = 2
 
     # Loop thru the different instrument sets
-    for vice in config:
-        dvice = config[vice]
+    for inst in allInsts:
+        try:
+            # This makes sure we have a reference to the base-level instrument
+            #   compatibility file in each specific device file.
+            # This could (and should) be cleaned up to be less convoluted!
+            compat = allInsts[inst]['compatibility']
+        except KeyError:
+            # I *think* keyerror is the right one to catch?
+            compat = None
 
-        if dvice.instrument == "NIHTS":
-            # Hack in NIHTS upfile compatibility as an extra config object
-            setattr(dvice, "upfile", compatibility.upfileNIHTS())
-        else:
-            setattr(dvice, "upfile", None)
+        for dtag in allInsts[inst]:
+            dvice = allInsts[inst][dtag]
 
-        # Check to make sure this device's query is actually set as enabled
-        if dvice.enabled is True:
-            if debug is True:
-                print("Beginning scheduling of %s+%s+%s" % (dvice.instrument,
-                                                            dvice.devtype,
-                                                            dvice.extratag))
+            # Check to make sure this device's query is actually set as enabled
+            if dvice.enabled is True and dvice.devtype != "upfile":
+                if debug is True:
+                    print("Scheduling %s+%s+%s" % (dvice.instrument,
+                                                   dvice.devtype,
+                                                   dvice.extratag))
 
-            # Set up some easy-access things for the scheduler
-            #   schedTags *must* be hashable, so it can't be a list and it's
-            #   easier to make it specific so it can be sensibly cancelled
-            schedTags = "%s+%s" % (dvice.instrument, dvice.devtype)
-            if dvice.extratag is not None:
-                schedTags += "+%s" % (dvice.extratag)
+                # Set up some easy-access things for the scheduler
+                #   schedTags *must* be hashable, so it can't be a list.
+                #   Make it specific so it can be sensibly cancelled
+                schedTags = "%s+%s" % (dvice.instrument, dvice.devtype)
+                if dvice.extratag is not None:
+                    schedTags += "+%s" % (dvice.extratag)
 
-            interval = int(dvice.queryinterval)
+                interval = int(dvice.queryinterval)
 
-            # Get our specific database connection object
-            try:
-                dbObj = idbs[dvice.database]
-            except KeyError:
-                dbObj = None
+                # Get our specific database connection object
+                try:
+                    dbObj = idbs[dvice.database]
+                except KeyError:
+                    dbObj = None
 
-            # Now try to get our broker connection object
-            try:
-                # [1] is the listener, and we don't need that at this point
-                bkObj = amqs[dvice.broker][0]
-            except KeyError:
-                bkObj = None
+                # Now try to get our broker connection object
+                try:
+                    # [1] is the listener, and we don't need that here
+                    bkObj = amqs[dvice.broker][0]
+                except KeyError:
+                    bkObj = None
 
-            # SPECIAL handling for this one, since it's not a serial device
-            #   but a broker command topic
-            if dvice.devtype.lower() == 'arc-loisgettemp':
-                print("Scheduling 'gettemp' for %s every %d seconds" %
-                      (dvice.instrument, interval))
-                sched.every(interval).seconds.do(cmd_loisgettemp,
-                                                 dvice, bkObj).tag(schedTags)
+                # SPECIAL handling for this one, since it's not a serial
+                #   device but a broker command topic
+                if dvice.devtype.lower() == 'arc-loisgettemp':
+                    print("Scheduling 'gettemp' for %s every %d seconds" %
+                          (dvice.instrument, interval))
+                    sched.every(interval).seconds.do(cmd_loisgettemp,
+                                                     dvice,
+                                                     bkObj).tag(schedTags)
+                else:
+                    print("Scheduling '%s' for %s every %d seconds" %
+                          (dvice.devtype, dvice.instrument, interval))
+                    sched.every(interval).seconds.do(cmd_serial,
+                                                     dvice, dbObj, bkObj,
+                                                     compat=compat,
+                                                     debug=debug).tag(schedTags)
+
+                # If we're in here, we scheduled an action. Pause so they
+                #   don't stack up too close. Do it in *here* rather than
+                #   the main dvice loop to ignore disabled devices!
+                time.sleep(temporalOffset)
             else:
-                print("Scheduling '%s' for %s every %d seconds" %
-                      (dvice.devtype, dvice.instrument, interval))
-                sched.every(interval).seconds.do(cmd_serial,
-                                                 dvice, dbObj, bkObj,
-                                                 debug=debug).tag(schedTags)
-
-            # If we're in here, we scheduled an action. Pause before our next
-            #   one to make sure they don't stack up too close. Do it in *here*
-            #   rather than in the main dvice loop because we don't care
-            #   about disabled devices!
-            time.sleep(temporalOffset)
-        else:
-            print("Device %s is disabled! Skipping it." % (dvice.devtype))
+                print("Device %s is disabled! Skipping it." % (dvice.devtype))
 
     return sched
 
