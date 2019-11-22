@@ -21,6 +21,12 @@ import functools
 import schedule
 
 
+class passedToSchedule():
+    def __init__(self):
+        self.var1 = 1
+        self.var2 = 0
+
+
 def catch_exceptions(cancel_on_failure=False):
     def catch_exceptions_decorator(job_func):
         @functools.wraps(job_func)
@@ -47,32 +53,38 @@ def with_logging(func):
 
 
 @with_logging
-def job1(arg1, arg2, arg3=False):
+def job1(dvice, arg3=False):
     """
     """
-    print(arg1, arg2, arg3)
+    print("Job1 %d %d" % (dvice.var1, dvice.var2))
+    dvice.var1 = 42
+    dvice.var2 += 1
+    print("Job1 update %d %d" % (dvice.var1, dvice.var2))
 
 
 @with_logging
 @catch_exceptions(cancel_on_failure=False)
-def job2(arg1, arg2, arg3=False):
+def job2(dvice, arg3=False):
     """
     """
-    print(arg1, arg2, arg3)
-    print(1/0)
+    print("Job2 %d %d" % (dvice.var1, dvice.var2))
+    dvice.var1 = 43
+    dvice.var2 += 1
+    print("Job2 update %d %d" % (dvice.var1, dvice.var2))
 
 
 def makeSchedule(s, defInt):
     """
     """
-    s.every(defInt).seconds.do(job1, "cheese", "checkers").tag("LMI")
-    s.every(defInt).seconds.do(job2, "rats", "potatoes").tag("NIHTS")
+    p2s = passedToSchedule()
+    s.every(defInt).seconds.do(job1, p2s).tag("LMI")
+    s.every(defInt).seconds.do(job2, p2s).tag("NIHTS")
 
     return s
 
 
 if __name__ == "__main__":
-    naptime = 30.
+    naptime = 15.
 
     defInt = 10
 
@@ -93,8 +105,8 @@ if __name__ == "__main__":
             time.sleep(1)
             i += 1
 
-        if adjusted is False:
-            sObj.clear('LMI')
-            sObj.every(30).seconds.do(job1, "cheese", "checkers").tag("LMI")
+        # if adjusted is False:
+        #     sObj.clear('LMI')
+        #     sObj.every(30).seconds.do(job1, p2s).tag("LMI")
 
-            adjusted = True
+        #     adjusted = True
