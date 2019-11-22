@@ -65,7 +65,7 @@ if __name__ == "__main__":
     #   section, to guarantee that it's shared between all devices for that
     #   instrument.  So it needs to be in this level!
     # Also hack in the required password
-    compatConfig = confparsers.rawParser("./config/compat.conf")
+    compatConfig = confparsers.rawParser("./conf/compat.conf")
     try:
         np = compatConfig['nihts']
     except Exception as err:
