@@ -16,7 +16,7 @@ Further description.
 from __future__ import division, print_function, absolute_import
 
 import copy
-import uuid
+from uuid import uuid4
 from collections import OrderedDict
 
 import xmltodict as xmld
@@ -133,7 +133,7 @@ class MrFreezeConsumer(ConnectionListener):
                 # This lets us make sure that we remove the right one from
                 #   the queue when it's processed
                 # UUID4 is just a random UUID
-                cmduuid = str(uuid.uuid4())
+                cmduuid = str(uuid4())
                 self.brokerQueue.update({cmduuid: cmddict})
 
     def emptyQueue(self):
