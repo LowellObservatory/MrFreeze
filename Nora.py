@@ -35,13 +35,13 @@ if __name__ == "__main__":
     #   the worker constructor (toServeMan).
     devices = './config/mrfreeze.conf'
     deviceconf = classes.instrumentDeviceTarget
-    passes = './config/passwords.conf'
+    passes = None
     logfile = './mrfreeze_nora.log'
     desc = "Nora: Heart of the DCT Instrument Cooler Manager"
     eargs = None
 
     # Interval between successive runs of the polling loop (seconds)
-    bigsleep = 5
+    bigsleep = 1
 
     # config: dictionary of parsed config file
     # comm: common block from config file
@@ -64,7 +64,16 @@ if __name__ == "__main__":
     # We need to store our NIHTS compatibility stuff in the above NIHTS
     #   section, to guarantee that it's shared between all devices for that
     #   instrument.  So it needs to be in this level!
-    allInsts["nihts"].update({"compatibility": compatibility.upfileNIHTS()})
+    # Also hack in the required password
+    compatConfig = confparsers.rawParser("./config/compat.conf")
+    try:
+        np = compatConfig['nihts']
+    except Exception as err:
+        print(str(err))
+        np = None
+
+    compatClass = compatibility.upfileNIHTS(np)
+    allInsts["nihts"].update({"compatibility": compatClass})
 
     try:
         with PidFile(pidname=mynameis.lower(), piddir=pidpath) as p:

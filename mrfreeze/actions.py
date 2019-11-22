@@ -21,6 +21,8 @@ import functools
 import serial
 import schedule
 
+from ligmos.utils import ssh
+
 from . import devices
 from . import publishers as pubs
 from . import serialcomm as scomm
@@ -86,6 +88,19 @@ def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
                 upf = compat.makeNIHTSUpfile()
                 print(upf)
                 # Now push the upfile out to the place it needs to be
+                with open(compat.params['upfnme'], "w") as f:
+                    f.write(upf)
+
+                sshNIHTS = ssh.SSHWrapper(host=compat.params['host'],
+                                          username=compat.params['user'],
+                                          password=compat.params['pw'])
+                sshNIHTS.openSFTP()
+                lloc = "./%s" % (compat.params['upfnme'])
+                rloc = "%s/%s" % (compat.params['upfloc'],
+                                  compat.params['upfnme'])
+                sshNIHTS.putFile(lloc, rloc)
+                sshNIHTS.closeSFTP()
+                sshNIHTS.closeConnection()
 
     except Exception as err:
         print("Unable to parse instrument response!")

@@ -25,13 +25,14 @@ class upfileNIHTS():
     that is needed because of the "upfile" arrangement that Peter made
     for NIHTS; see https://jumar.lowell.edu/confluence/x/PQBCAg
     """
-    def __init__(self, debug=False):
+    def __init__(self, params, debug=False):
         self.debug = debug
 
         # This is for compatibility with actions.scheduleDevices()
         self.instrument = "NIHTS"
         self.devtype = 'upfile'
         self.enabled = True
+        self.params = params
 
         # Initial starting values so it's not at least None at the get-go
         defaultValue = -9999.
@@ -148,7 +149,8 @@ class upfileNIHTS():
         finalForm += sectBegin
 
         skipableSections = ['debug', 'devtype',
-                            'enabled', 'instrument', 'xkeys']
+                            'enabled', 'instrument',
+                            'xkeys', 'params']
 
         # We'll loop over the properties
         for sect in self.__dict__:

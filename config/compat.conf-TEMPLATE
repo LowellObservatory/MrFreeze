@@ -1,0 +1,6 @@
+[instrument]
+host = hostname
+user = username
+pw = password
+upfnme = coolerupf.current
+upfloc = /path/to/upfile/on/hostname
