@@ -71,21 +71,21 @@ def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
     try:
         if reply is not None:
             if dvice.devtype.lower() == 'vactransducer_mks972b':
-                c = pubs.publish_MKS972b(dvice, reply,
-                                         db=dbObj, broker=bkObj,
-                                         compat=compat, debug=debug)
+                compat = pubs.publish_MKS972b(dvice, reply,
+                                              db=dbObj, broker=bkObj,
+                                              compat=compat, debug=debug)
             elif dvice.devtype.lower() in sunpowerset:
-                c = pubs.publish_Sunpower(dvice, reply,
-                                          db=dbObj, broker=bkObj,
-                                          compat=compat, debug=debug)
+                compat = pubs.publish_Sunpower(dvice, reply,
+                                               db=dbObj, broker=bkObj,
+                                               compat=compat, debug=debug)
             elif dvice.devtype.lower() in lsset:
-                c = pubs.publish_LSThing(dvice, reply,
-                                         db=dbObj, broker=bkObj,
-                                         compat=compat, debug=debug)
+                compat = pubs.publish_LSThing(dvice, reply,
+                                              db=dbObj, broker=bkObj,
+                                              compat=compat, debug=debug)
             if compat is not None:
-                # We need to update the compat property to carry it forward
-                compat = c
-                print(compat.makeNIHTSUpfile())
+                upf = compat.makeNIHTSUpfile()
+                print(upf)
+                # Now push the upfile out to the place it needs to be
 
     except Exception as err:
         print("Unable to parse instrument response!")
