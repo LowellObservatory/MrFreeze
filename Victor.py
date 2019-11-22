@@ -18,7 +18,7 @@ from pid import PidFile, PidFileError
 
 import mrfreeze
 from ligmos.workers import workerSetup, connSetup
-from ligmos.utils import amq, common, classes, confparsers
+from ligmos.utils import amq, common, classes
 
 
 if __name__ == "__main__":
