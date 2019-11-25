@@ -62,18 +62,21 @@ def advertiseConfiged(config, debug=True):
         isect = config[i]
         for d in isect:
             dev = isect[d]
+            if dev.devtype.lower() == 'upfile':
+                # Skip the hardcoded upfile stuff and don't advertise it
+                print("Skipping advertisement of upfile %s" % (d))
+            else:
+                devdict = {"instrument": dev.instrument,
+                           "device": dev.devtype,
+                           "tag": dev.extratag,
+                           "hostname": dev.devhost,
+                           "port": dev.devport,
+                           "enabled": dev.enabled}
 
-            devdict = {"instrument": dev.instrument,
-                       "device": dev.devtype,
-                       "tag": dev.extratag,
-                       "hostname": dev.devhost,
-                       "port": dev.devport,
-                       "enabled": dev.enabled}
-
-            # We store these semi-flat organized by a "device" tag;
-            #   that makes the XML schema easier to handle, since we
-            #   can have 0-N <device> tags that all look the same
-            devlist.append(devdict)
+                # We store these semi-flat organized by a "device" tag;
+                #   that makes the XML schema easier to handle, since we
+                #   can have 0-N <device> tags that all look the same
+                devlist.append(devdict)
 
     idict.update({"device": devlist})
 
