@@ -84,17 +84,17 @@ if __name__ == "__main__":
             # Check to see if there are any connections/objects to establish
             idbs = connSetup.connIDB(comm)
 
-            # UGH more hardcoding. Someone more clever than I can clean up.
-            db = idbs['database-dct']
-            amqlistener = listener.MrFreezeConsumer(db=db)
-
             # Specify our custom listener that will really do all the work
             #   Since we're hardcoding for the DCTConsumer anyways, I'll take
             #   a bit shortcut and hardcode for the DCT influx database.
+            # Someone more clever than I can clean up.
+            db = idbs['database-dct']
+            amqlistener = listener.MrFreezeConsumer(db=db)
+
             # TODO: Figure out a way to create a dict of listeners specified
             #   in some creative way. Could add a configuration item to the
             #   file and then loop over it, and change connAMQ accordingly.
-            amqtopics = amq.getAllTopics(config, comm)
+            amqtopics = amq.getAllTopics(config, comm, queuerole='master')
             amqs = connSetup.connAMQ(comm, amqtopics, amqlistener=amqlistener)
 
             # Just hardcode this for now. It's a prototype!

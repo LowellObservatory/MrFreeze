@@ -216,45 +216,46 @@ def queueProcessor(queueActions, allInsts, conn, queue):
             print("Advertising the current actions...")
             adpacket = pubs.advertiseConfiged(allInsts)
             conn.publish(queue.replytopic, adpacket)
-
-        if atag is not None:
-            cdest = "%s_%s" % (adevc, atag)
         else:
-            cdest = "%s" % (adevc)
-
-        # Check to see if this destination is one we actually
-        #   know anything about
-        try:
-            selInst = allInsts[ainst][cdest]
-        except AttributeError:
-            print("WARNING: Command %s ignored!" % (acmd))
-            print("Unknown instrument %s" % (cdest))
-            selInst = None
-
-        print(selInst)
-
-        # Now check the actual command
-        if selInst is not None:
-            if acmd.lower() == "queryenable":
-                print("Enabling %s %s" % (ainst, cdest.lower()))
-                selInst.enabled = True
-            elif acmd.lower() == "querydisable":
-                print("Disabling %s %s" % (ainst, cdest.lower()))
-                selInst.enabled = False
-            elif acmd.lower() == "devicehost":
-                print("Setting device host to %s" % (aarg))
-                selInst.devhost = aarg
-            elif acmd.lower() == "deviceport":
-                print("Setting device port to %s" % (aarg))
-                selInst.devport = aarg
+            # All other command types are specific to an instrument
+            if atag is not None:
+                cdest = "%s_%s" % (adevc, atag)
             else:
-                # Check to see if the command is in the remoteAPI
-                #   that we defined for the devices
-                # https://github.com/LowellObservatory/MrFreeze/issues/8
-                pass
+                cdest = "%s" % (adevc)
 
-            # Now store this instrument back in the main set,
-            #   so we can use any updates that just happened
-            allInsts[ainst][cdest] = selInst
+            # Check to see if this destination is one we actually
+            #   know anything about
+            try:
+                selInst = allInsts[ainst][cdest]
+            except AttributeError:
+                print("WARNING: Command %s ignored!" % (acmd))
+                print("Unknown instrument %s" % (cdest))
+                selInst = None
+
+            print(selInst)
+
+            # Now check the actual command
+            if selInst is not None:
+                if acmd.lower() == "queryenable":
+                    print("Enabling %s %s" % (ainst, cdest.lower()))
+                    selInst.enabled = True
+                elif acmd.lower() == "querydisable":
+                    print("Disabling %s %s" % (ainst, cdest.lower()))
+                    selInst.enabled = False
+                elif acmd.lower() == "devicehost":
+                    print("Setting device host to %s" % (aarg))
+                    selInst.devhost = aarg
+                elif acmd.lower() == "deviceport":
+                    print("Setting device port to %s" % (aarg))
+                    selInst.devport = aarg
+                else:
+                    # Check to see if the command is in the remoteAPI
+                    #   that we defined for the devices
+                    # https://github.com/LowellObservatory/MrFreeze/issues/8
+                    pass
+
+                # Now store this instrument back in the main set,
+                #   so we can use any updates that just happened
+                allInsts[ainst][cdest] = selInst
 
     return allInsts

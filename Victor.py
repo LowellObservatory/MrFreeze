@@ -55,8 +55,9 @@ if __name__ == "__main__":
             #   (helpful to find starts/restarts when scanning thru logs)
             common.printPreamble(p, config)
 
-            amqlistener = amq.silentSubscriber()
-            amqtopics = amq.getAllTopics(config, comm)
+            amqlistener = amq.ParrotSubscriber()
+            amqtopics = amq.getAllTopics(config, comm, queuerole='slave')
+            # Manually stuff the
             amqs = connSetup.connAMQ(comm, amqtopics, amqlistener=amqlistener)
 
             # Just hardcode this for now. It's a prototype!
@@ -70,10 +71,21 @@ if __name__ == "__main__":
 
                 # Leaving this in a loop for testing for now; Victor will
                 #   turn into a single-shooter when he's ready
-                inst = 'NIHTS'
-                device = 'sunpowergen2'
-                tag = 'BenchCooler'
-                cmd = 'querydisable'
+                # inst = 'NIHTS'
+                # device = 'sunpowergen2'
+                # tag = 'BenchCooler'
+                # cmd = 'querydisable'
+                # value = None
+
+                # cmdpak = mrfreeze.publishers.constructCommand(inst, device,
+                #                                               tag, cmd,
+                #                                               value=value,
+                #                                               debug=True)
+
+                cmd = 'advertise'
+                inst = 'any'
+                device = 'any'
+                tag = None
                 value = None
 
                 cmdpak = mrfreeze.publishers.constructCommand(inst, device,
