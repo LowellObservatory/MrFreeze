@@ -71,6 +71,7 @@ def advertiseConfiged(config, debug=True):
                            "tag": dev.extratag,
                            "hostname": dev.devhost,
                            "port": dev.devport,
+                           "queryinterval": dev.queryinterval,
                            "enabled": dev.enabled}
 
                 # We store these semi-flat organized by a "device" tag;
