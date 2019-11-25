@@ -108,6 +108,10 @@ if __name__ == "__main__":
                                                 amqs, idbs,
                                                 debug=True)
 
+            # Before we start the main loop, query all the defined actions
+            #   in turn. This will help avoid triggering alerts/warnings/etc.
+            sched.run_all(delay_seconds=0.5)
+
             # Semi-infinite loop
             while runner.halt is False:
                 # Check on our connections
