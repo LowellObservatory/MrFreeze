@@ -110,6 +110,9 @@ if __name__ == "__main__":
 
             # Before we start the main loop, query all the defined actions
             #   in turn. This will help avoid triggering alerts/warnings/etc.
+            # We need to make sure the connection to the broker is up first,
+            #   though, because we need to get the LOIS reply topics connected.
+            amqs = amq.checkConnections(amqs, subscribe=True)
             sched.run_all(delay_seconds=0.5)
 
             # Semi-infinite loop
