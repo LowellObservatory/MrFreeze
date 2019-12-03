@@ -1,6 +1,6 @@
-# This assumes that the pytest image has already been made
+# This assumes that the ligbase image has already been made
 #   as required for the DCTStack/DataServants
-FROM pytest
+FROM ligbase
 
 USER lig:lig
 WORKDIR /home/lig/Codes/
