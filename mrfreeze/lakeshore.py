@@ -33,7 +33,6 @@ def allCommands(device):
         readall = "KRDG?"
 
         cset = {"readall": readall}
-
     elif device == "lakeshore325":
         # 9600 baud, half duplex
         # 1 start, 7 data, 1 parity, 1 stop
@@ -71,6 +70,35 @@ def allCommands(device):
                 "gethtrpwr2": gethtrpwr2,
                 "gethtr2": gethtr2,
                 "sethtr2": sethtr2}
+    elif device == "lakeshore331":
+        # Mostly the same as the 325, but
+        term = "\r\n"
+        reada = "KRDG?A"
+        readb = "KRDG?B"
+
+        getsetp1 = "SETP? 1"
+        setsetp1 = "SETP 1"
+        getsetp2 = "SETP? 2"
+        setsetp2 = "SETP 2"
+
+        # This is different between the 325 and the 331
+        gethtrpwr1 = "HTR?"
+        gethtrpwr2 = "AOUT?"
+
+        gethtr = "RANGE?"
+        sethtr = "RANGE"
+
+        cset = {"reada": reada,
+                "readb": readb,
+                "getsetp1": getsetp1,
+                "setsetp1": setsetp1,
+                "getsetp2": getsetp2,
+                "setsetp2": setsetp2,
+                "gethtrpwr1": gethtrpwr1,
+                "gethtrpwr2": gethtrpwr2,
+                "gethtr": gethtr1,
+                "sethtr": sethtr1,
+                }
 
     return cset, term
 
