@@ -272,3 +272,17 @@ def queueProcessor(sched, queueActions, allInsts, conn, queue):
                 allInsts[ainst][cdest] = selInst
 
     return allInsts
+
+
+def scheduleManipulation(sched, tag, action=None):
+    """
+    """
+    if action is None:
+        print("No change to the schedule was requested!")
+    else:
+        if action.lower() == 'enable':
+            pass
+        elif action.lower() == 'disable':
+            pass
+        elif action.lower() == 'reschedule':
+            pass
