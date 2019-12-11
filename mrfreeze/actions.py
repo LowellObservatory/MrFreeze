@@ -154,9 +154,9 @@ def scheduleInstruments(sched, allInsts, amqs, idbs, debug=False):
                 # Set up some easy-access things for the scheduler
                 #   schedTags *must* be hashable, so it can't be a list.
                 #   Make it specific so it can be sensibly cancelled
-                schedTags = "%s+%s" % (dvice.instrument, dvice.devtype)
+                schedTag = "%s+%s" % (dvice.instrument, dvice.devtype)
                 if dvice.extratag is not None:
-                    schedTags += "+%s" % (dvice.extratag)
+                    schedTag += "+%s" % (dvice.extratag)
 
                 interval = int(dvice.queryinterval)
 
@@ -180,14 +180,14 @@ def scheduleInstruments(sched, allInsts, amqs, idbs, debug=False):
                           (dvice.instrument, interval))
                     sched.every(interval).seconds.do(cmd_loisgettemp,
                                                      dvice,
-                                                     bkObj).tag(schedTags)
+                                                     bkObj).tag(schedTag)
                 else:
                     print("Scheduling '%s' for %s every %d seconds" %
                           (dvice.devtype, dvice.instrument, interval))
                     sched.every(interval).seconds.do(cmd_serial,
                                                      dvice, dbObj, bkObj,
                                                      compat=compat,
-                                                     debug=debug).tag(schedTags)
+                                                     debug=debug).tag(schedTag)
 
                 # If we're in here, we scheduled an action. Pause so they
                 #   don't stack up too close. Do it in *here* rather than
@@ -199,7 +199,7 @@ def scheduleInstruments(sched, allInsts, amqs, idbs, debug=False):
     return sched
 
 
-def queueProcessor(queueActions, allInsts, conn, queue):
+def queueProcessor(sched, queueActions, allInsts, conn, queue):
     """
     """
     # Do some stuff!
@@ -236,18 +236,31 @@ def queueProcessor(queueActions, allInsts, conn, queue):
 
             # Now check the actual command
             if selInst is not None:
+                schedTag = "%s+%s" % (ainst, adevc)
+                if atag is not None:
+                    schedTag += "+%s" % (atag)
                 if acmd.lower() == "queryenable":
                     print("Enabling %s %s" % (ainst, cdest.lower()))
                     selInst.enabled = True
+                    # Schedule this instrument
+
                 elif acmd.lower() == "querydisable":
                     print("Disabling %s %s" % (ainst, cdest.lower()))
                     selInst.enabled = False
+                    # Remove this instrument from the schedule if it's there
+
                 elif acmd.lower() == "devicehost":
                     print("Setting device host to %s" % (aarg))
                     selInst.devhost = aarg
+                    # Cancel this instrument from the schedule if it's there,
+                    #   then reschedule it
+
                 elif acmd.lower() == "deviceport":
                     print("Setting device port to %s" % (aarg))
                     selInst.devport = aarg
+                    # Cancel this instrument from the schedule if it's there,
+                    #   then reschedule it
+
                 else:
                     # Check to see if the command is in the remoteAPI
                     #   that we defined for the devices

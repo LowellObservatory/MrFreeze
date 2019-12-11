@@ -59,7 +59,8 @@ if __name__ == "__main__":
     # Reorganize the configuration to be per-instrument so it's a little
     #   easier to loop over and do other stuff with
     allInsts = confparsers.regroupConfig(config, groupKey='instrument',
-                                         ekeys=['devtype', 'extratag'])
+                                         ekeys=['devtype', 'extratag'],
+                                         delim="+")
 
     # We need to store our NIHTS compatibility stuff in the above NIHTS
     #   section, to guarantee that it's shared between all devices for that
@@ -136,8 +137,8 @@ if __name__ == "__main__":
                 print("%d items obtained from the queue" % (len(queueActions)))
 
                 # Process and deal with the things in the queue
-                allInsts = actions.queueProcessor(queueActions, allInsts,
-                                                  conn, queue)
+                allInsts = actions.queueProcessor(sched, queueActions,
+                                                  allInsts, conn, queue)
 
                 # Diagnostic output
                 nleft = len(amqlistener.brokerQueue.items())
