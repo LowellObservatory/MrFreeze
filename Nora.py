@@ -133,8 +133,8 @@ def main():
         print("%d items obtained from the queue" % (len(queueActions)))
 
         # Process and deal with the things in the queue
-        allInsts = actions.queueProcessor(queueActions, allInsts,
-                                            conn, queue)
+        allInsts = actions.queueProcessor(sched, queueActions, allInsts,
+                                          conn, queue)
 
         # Diagnostic output
         nleft = len(amqlistener.brokerQueue.items())
