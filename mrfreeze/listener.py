@@ -106,6 +106,8 @@ class MrFreezeConsumer(ConnectionListener):
                         meas = ["LMI_arc-loisgettemp"]
                     elif 'deveny' in tname.lower():
                         meas = ["DeVeny_arc-loisgettemp"]
+                    elif 'nasa42' in tname.lower():
+                        meas = ["NASA42_arc-loisgettemp"]
 
                     # Only store the packet if we actually have fields that
                     #   were successfully parsed
