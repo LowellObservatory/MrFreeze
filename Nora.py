@@ -34,6 +34,7 @@ def main():
     logfile = './mrfreeze_nora.log'
     desc = "Nora: Heart of the DCT Instrument Cooler Manager"
     eargs = None
+    logenable = False
 
     # Interval between successive runs of the polling loop (seconds)
     bigsleep = 1
@@ -49,7 +50,7 @@ def main():
                                                         extraargs=eargs,
                                                         conftype=deviceconf,
                                                         enableCheck=False,
-                                                        logfile=True)
+                                                        logfile=logenable)
 
     # Get this PID for diagnostics
     pid = os.getpid()
