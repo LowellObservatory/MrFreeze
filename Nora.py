@@ -34,7 +34,7 @@ def main():
     logfile = './mrfreeze_nora.log'
     desc = "Nora: Heart of the DCT Instrument Cooler Manager"
     eargs = None
-    logenable = False
+    logenable = True
 
     # Interval between successive runs of the polling loop (seconds)
     bigsleep = 1
