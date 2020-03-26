@@ -71,12 +71,11 @@ def main():
     try:
         compatConfig = confparsers.rawParser("./config/compat.conf")
         np = compatConfig['nihts']
+        compatClass = compatibility.upfileNIHTS(np)
+        allInsts["nihts"].update({"compatibility": compatClass})
     except Exception as err:
         print(str(err))
         np = None
-
-    compatClass = compatibility.upfileNIHTS(np)
-    allInsts["nihts"].update({"compatibility": compatClass})
 
     # Check to see if there are any connections/objects to establish
     idbs = connSetup.connIDB(comm)
