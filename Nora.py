@@ -47,7 +47,7 @@ if __name__ == "__main__":
     # comm: common block from config file
     # args: parsed options
     # runner: class that contains logic to quit nicely
-    config, comm, args, runner = workerSetup.toServeMan(mynameis, devices,
+    config, comm, args, runner = workerSetup.toServeMan(devices,
                                                         passes,
                                                         logfile,
                                                         desc=desc,
@@ -66,8 +66,8 @@ if __name__ == "__main__":
     #   section, to guarantee that it's shared between all devices for that
     #   instrument.  So it needs to be in this level!
     # Also hack in the required password
-    compatConfig = confparsers.rawParser("/home/lig/conf/compat.conf")
     try:
+        compatConfig = confparsers.rawParser("./config/compat.conf")
         np = compatConfig['nihts']
     except Exception as err:
         print(str(err))
