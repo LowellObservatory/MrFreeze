@@ -31,8 +31,8 @@ def main():
     devices = './config/mrfreeze.conf'
     deviceconf = classes.instrumentDeviceTarget
     passes = None
-    logfile = './mrfreeze_nora.log'
-    desc = "Nora: Heart of the DCT Instrument Cooler Manager"
+    logfile = './logs/mrfreeze_nora.log'
+    desc = "Nora: Heart of the Instrument Cooler Manager"
     eargs = None
     logenable = True
 
@@ -43,14 +43,14 @@ def main():
     # comm: common block from config file
     # args: parsed options
     # runner: class that contains logic to quit nicely
-    config, comm, args, runner = workerSetup.toServeMan(devices,
-                                                        passes,
-                                                        logfile,
-                                                        desc=desc,
-                                                        extraargs=eargs,
-                                                        conftype=deviceconf,
-                                                        enableCheck=False,
-                                                        logfile=logenable)
+    config, comm, _, runner = workerSetup.toServeMan(devices,
+                                                     passes,
+                                                     logfile,
+                                                     desc=desc,
+                                                     extraargs=eargs,
+                                                     conftype=deviceconf,
+                                                     enableCheck=False,
+                                                     logfile=logenable)
 
     # Get this PID for diagnostics
     pid = os.getpid()
