@@ -125,6 +125,12 @@ def parseLakeShore(cmdtype, reply, modelnum=218):
                           "Sensor5", "Sensor6", "Sensor7", "Sensor8"]
                 vals = [float(v) for v in dr.strip().split(',')]
                 finale = dict(zip(labels, vals))
+            elif cmdtype.lower() == "sensortempsohms":
+                labels = ["Sensor1Ohm", "Sensor2Ohm", "Sensor3Ohm",
+                          "Sensor4Ohm", "Sensor5Ohm", "Sensor6Ohm",
+                          "Sensor7Ohm", "Sensor8Ohm"]
+                vals = [float(v) for v in dr.strip().split(',')]
+                finale = dict(zip(labels, vals))
             else:
                 print("Unknown LS218 Reply!")
         elif modelnum == 325:
