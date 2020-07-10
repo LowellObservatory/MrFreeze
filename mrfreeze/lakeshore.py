@@ -31,8 +31,10 @@ def allCommands(device):
     if device == 'lakeshore218':
         term = "\r\n"
         readall = "KRDG?"
+        readohm = "SRDG?"
 
-        cset = {"readall": readall}
+        cset = {"readall": readall,
+                "readohm": readohm}
     elif device == "lakeshore325":
         # 9600 baud, half duplex
         # 1 start, 7 data, 1 parity, 1 stop
@@ -44,6 +46,9 @@ def allCommands(device):
         term = "\r\n"
         reada = "KRDG?A"
         readb = "KRDG?B"
+
+        readaohm = "SRDG?A"
+        readbohm = "SRDG?B"
 
         getsetp1 = "SETP? 1"
         setsetp1 = "SETP 1"
@@ -60,6 +65,8 @@ def allCommands(device):
 
         cset = {"reada": reada,
                 "readb": readb,
+                "readaohm": readaohm,
+                "readbohm": readbohm,
                 "getsetp1": getsetp1,
                 "setsetp1": setsetp1,
                 "getsetp2": getsetp2,
