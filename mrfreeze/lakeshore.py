@@ -122,11 +122,14 @@ def defaultQueries(device):
     cset = None
 
     if device == "lakeshore218":
-        cset = {"SensorTemps": allCmds["readall"] + term}
+        cset = {"SensorTemps": allCmds["readall"] + term,
+                "SensorTempsOhms": allCmds["readohm"] + term}
 
     elif device == "lakeshore325":
         cset = {"SensorTempA": allCmds["reada"] + term,
                 "SensorTempB": allCmds["readb"] + term,
+                "SensorTempAOhm": allCmds["readaohm"] + term,
+                "SensorTempBOhm": allCmds["readbohm"] + term,
                 "Setpoint1": allCmds["getsetp1"] + term,
                 "Setpoint2": allCmds["getsetp2"] + term,
                 "Heater1": allCmds["gethtrpwr1"] + term,
