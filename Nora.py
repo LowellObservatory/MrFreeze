@@ -69,14 +69,20 @@ def main():
     #   section, to guarantee that it's shared between all devices for that
     #   instrument.  So it needs to be in this level!
     # Also hack in the required password
+    print("Looking for NIHTS compatibility section...")
     try:
         compatConfig = confparsers.rawParser("./config/compat.conf")
         np = compatConfig['nihts']
         compatClass = compatibility.upfileNIHTS(np)
         allInsts["nihts"].update({"compatibility": compatClass})
+        print("NIHTS compatibility layer enabled.")
     except Exception as err:
+        print("None found! Skipping.")
         print(str(err))
         np = None
+
+    print("Config:")
+    print(allInsts)
 
     # Check to see if there are any connections/objects to establish
     idbs = connSetup.connIDB(comm)
