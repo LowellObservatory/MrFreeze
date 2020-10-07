@@ -28,10 +28,10 @@ def main():
     """
     # Define the default files we'll use/look for. These are passed to
     #   the worker constructor (toServeMan).
-    devices = './config/mrfreeze.conf'
+    devices = './conf/mrfreeze.conf'
     deviceconf = classes.instrumentDeviceTarget
     passes = None
-    logfile = './logs/mrfreeze_nora.log'
+    logfile = './logs/nora.log'
     desc = "Nora: Heart of the Instrument Cooler Manager"
     eargs = None
     logenable = True
@@ -71,7 +71,7 @@ def main():
     # Also hack in the required password
     print("Looking for NIHTS compatibility section...")
     try:
-        compatConfig = confparsers.rawParser("./config/compat.conf")
+        compatConfig = confparsers.rawParser("./conf/compat.conf")
         np = compatConfig['nihts']
         compatClass = compatibility.upfileNIHTS(np)
         allInsts["nihts"].update({"compatibility": compatClass})
