@@ -291,7 +291,7 @@ def parseNewport(cmdtype, reply, debug=True):
         if dr[0].isdigit():
             # This means there's no prefixes
             #   BUT!  A negative sign isn't a prefix!
-            if dr[0] != '-':
+            if dr[0] == '-':
                 prefix = False
             else:
                 prefix = True
