@@ -290,7 +290,11 @@ def parseNewport(cmdtype, reply, debug=True):
         #   Test the first character
         if dr[0].isdigit():
             # This means there's no prefixes
-            prefix = False
+            #   BUT!  A negative sign isn't a prefix!
+            if dr[0] != '-':
+                prefix = False
+            else:
+                prefix = True
         else:
             # This means there are prefixes (T/H/whatever)
             prefix = True
