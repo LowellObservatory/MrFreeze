@@ -58,6 +58,9 @@ def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
     # Supported Lake Shore devices
     lsset = ['lakeshore218', 'lakeshore325']
 
+    # Supported Newport devices
+    newportset = ['newport_ithx', 'newport_isd-tc']
+
     # Go and get commands that are valid for the device
     msgs = devices.defaultQueryCommands(device=dvice.devtype)
 
@@ -82,6 +85,10 @@ def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
                                                compat=compat, debug=debug)
             elif dvice.devtype.lower() in lsset:
                 compat = pubs.publish_LSThing(dvice, reply,
+                                              db=dbObj, broker=bkObj,
+                                              compat=compat, debug=debug)
+            elif dvice.devtype.lower() in newportset:
+                compat = pubs.publish_Newport(dvice, reply,
                                               db=dbObj, broker=bkObj,
                                               compat=compat, debug=debug)
             if compat is not None:

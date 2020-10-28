@@ -16,6 +16,7 @@ Further description.
 from __future__ import division, print_function, absolute_import
 
 from . import mks_kjl
+from . import newport
 from . import sunpower
 from . import lakeshore
 
@@ -50,6 +51,9 @@ def allCommands(device=None):
     elif device in ["lakeshore218", "lakeshore325"]:
         cset, term = lakeshore.allCommands(device)
 
+    elif device in ['newport_ithx', 'newport_isd-tc']:
+        cset, term = newport.allCommands(device)
+
     else:
         print("INVALID DEVICE: %s" % (device))
 
@@ -76,6 +80,8 @@ def defaultQueryCommands(device=None):
         cset = sunpower.defaultQueries(device)
     elif device in ['lakeshore218', 'lakeshore325']:
         cset = lakeshore.defaultQueries(device)
+    elif device in ['newport_ithx', 'newport_isd-tc']:
+        cset = newport.defaultQueries(device)
     else:
         print("INVALID DEVICE: %s" % (device))
         cset = None
@@ -115,6 +121,9 @@ def translateRemoteAPI(dvice, cmd, value=None):
 
     elif dvtype in ["lakeshore218", "lakeshore325"]:
         fcmd = lakeshore.brokerAPI(dvtype, cmd, value=None)
+
+    elif dvtype in ['newport_ithx', 'newport_isd-tc']:
+        fcmd = newport.brokerAPI(dvtype, cmd, value=None)
 
     # Package it up for returning
     if fcmd is None:

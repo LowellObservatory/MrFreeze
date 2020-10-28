@@ -280,3 +280,31 @@ def publish_MKS972b(dvice, replies, db=None, broker=None, compat=None,
             compat.updateSection("NIHTS_vacgauge", fields)
 
     return compat
+
+
+def publish_Newport(dvice, replies, db=None, broker=None, compat=None,
+                    debug=False):
+    """
+    as defined in serComm:
+
+    reply is the "key" from devices.queryCommands
+    replies[reply][0] is the bytes message
+    replies[reply][1] is the timestamp
+    """
+    measname = ["%s_%s" % (dvice.instrument, dvice.devtype)]
+    tags = {"Device": dvice.devtype}
+    fields = {}
+    for reply in replies:
+        ans = parsers.parseNewport(reply, replies[reply][0], debug=True)
+
+        if ans != {}:
+            fields.update(ans)
+            lastTS = replies[reply][1]
+
+    if fields != {}:
+        makeAndPublishAMQ(measname, fields, lastTS, broker, dvice.brokertopic,
+                          debug=debug)
+        makeAndPublishIDB(measname, fields, db, tags, dvice.tablename,
+                          debug=debug)
+
+    return compat

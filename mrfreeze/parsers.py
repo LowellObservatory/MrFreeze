@@ -15,7 +15,10 @@ from __future__ import division, print_function, absolute_import
 
 import os
 import datetime as dt
-from collections import MutableMapping
+try:
+    from collections.abc import MutableMapping
+except ImportError:
+    from collections import MutableMapping
 
 
 import xmlschema as xmls
@@ -263,6 +266,63 @@ def parseLOISTemps(hed, msg):
         else:
             fields = {}
             # print(loglevel, logmsg)
+
+    return fields
+
+
+def parseNewport(cmdtype, reply, debug=True):
+    """
+    Expect replies to be in the following possible forms, depending on
+    the specific configuration:
+
+    Xxx.xxxY,Xxx.xxxY
+
+    Where X and Y are optional.
+    X can be T/T[1...N]/H
+    Y are the units, F/C
+    """
+    dr = decode(reply)
+    if dr != '':
+        if debug is True:
+            print(dr)
+
+        # Figure out our parsing path that we must take
+        #   Test the first character
+        if dr[0].isdigit():
+            # This means there's no prefixes
+            prefix = False
+        else:
+            # This means there are prefixes (T/H/whatever)
+            prefix = True
+
+        #   Test the last character
+        if dr[-1].isdigit():
+            # This means there's no prefixes
+            postfix = False
+        else:
+            # This means there are prefixes (T/H/whatever)
+            postfix = True
+
+        # Now figure out how many things we have
+        drbits = dr.split(',')
+        fields = {}
+        for i, each in enumerate(drbits):
+            sensNum = "Sensor%02d" % (i+1)
+
+            trimmed = each
+            if prefix is True:
+                trimmed = each[1:]
+
+            if postfix is True:
+                trimmed = trimmed[:-1]
+
+            try:
+                rval = float(trimmed)
+            except ValueError:
+                rval = None
+
+            if rval is not None:
+                fields.update({cmdtype: rval})
 
     return fields
 
