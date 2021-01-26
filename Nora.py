@@ -73,9 +73,14 @@ def main():
     try:
         compatConfig = confparsers.rawParser("../../conf/compat.conf")
         np = compatConfig['nihts']
-        compatClass = compatibility.upfileNIHTS(np)
-        allInsts["nihts"].update({"compatibility": compatClass})
-        print("NIHTS compatibility layer enabled.")
+        # A cheap hack inside of a cheap hack!
+        if np['enabled'].lower() == "false":
+            np = None
+            print("Warning! Compat info found, but was disabled!")
+        else:
+            compatClass = compatibility.upfileNIHTS(np)
+            allInsts["nihts"].update({"compatibility": compatClass})
+            print("NIHTS compatibility layer enabled.")
     except Exception as err:
         print("None found! Skipping.")
         print(str(err))
