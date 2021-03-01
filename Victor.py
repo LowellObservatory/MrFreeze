@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # comm: common block from config file
     # args: parsed options
     # runner: class that contains logic to quit nicely
-    config, comm, args, runner = workerSetup.toServeMan(mynameis, devices,
+    config, comm, args, runner = workerSetup.toServeMan(devices,
                                                         passes,
                                                         logfile,
                                                         desc=desc,
@@ -56,7 +56,7 @@ if __name__ == "__main__":
             common.printPreamble(p, config)
 
             amqlistener = amq.ParrotSubscriber()
-            amqtopics = amq.getAllTopics(config, comm, queuerole='slave')
+            amqtopics = amq.getAllTopics(config, comm, queuerole='client')
             # Manually stuff the
             amqs = connSetup.connAMQ(comm, amqtopics, amqlistener=amqlistener)
 
