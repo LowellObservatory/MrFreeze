@@ -204,10 +204,13 @@ def parseLOISTemps(hed, msg):
     ltime = msg[0:8].split(":")
     # Bail early since this indicates it's not really a log line but
     #   some other type of message (like a LOIS startup or something)
+    if msg.strip() == "Lois Log Module Initialized":
+        return {}
+
     if len(ltime) != 3:
         print("Unknown log line!")
         print(msg)
-        return
+        return {}
 
     now = now.replace(hour=int(ltime[0]), minute=int(ltime[1]),
                       second=int(ltime[2]), microsecond=0)
