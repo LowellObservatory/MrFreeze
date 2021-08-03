@@ -57,37 +57,12 @@ class MrFreezeConsumer(ConnectionListener):
             print(body)
             badMsg = True
 
-        if badMsg is False:
-            try:
-                xml = xmld.parse(body)
-                # If we want to have the XML as a string:
-                # res = {tname: [headers, dumpPacket(xml)]}
-                # If we want to have the XML as an object:
-                res = {tname: [headers, xml]}
-            except xmld.expat.ExpatError:
-                # This means that XML wasn't found, so it's just a string
-                #   packet with little/no structure. Attach the sub name
-                #   as a tag so someone else can deal with the thing
-                res = {tname: [headers, body]}
-            except Exception as err:
-                # This means that there was some kind of transport error
-                #   or it couldn't figure out the encoding for some reason.
-                #   Scream into the log but keep moving
-                print("="*42)
-                print(headers)
-                print(body)
-                print(str(err))
-                print("="*42)
-                badMsg = True
-
         # Now send the packet to the right place for processing.
         #   These need special parsing because they're just straight text
         cmddict = {}
         if badMsg is False:
             try:
                 if tname == 'lig.MrFreeze.cmd':
-                    # TODO: Wrap this in a proper try...except
-                    #   As of right now, it'll be caught in the "WTF!!!"
                     schema = self.schemaDict[tname]
                     cmddict = parsers.parserCmdPacket(headers, body,
                                                       schema=schema,
@@ -121,7 +96,6 @@ class MrFreezeConsumer(ConnectionListener):
                     print("Orphan topic: %s" % (tname))
                     print(headers)
                     print(body)
-                    print(res)
             except Exception as err:
                 # This is a catch-all to help find parsing errors that need
                 #   to be fixed since they're not caught in a parser* func.
