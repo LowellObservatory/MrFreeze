@@ -102,7 +102,7 @@ def main():
     # TODO: Figure out a way to create a dict of listeners specified
     #   in some creative way. Could add a configuration item to the
     #   file and then loop over it, and change connAMQ accordingly.
-    amqtopics = amq.getAllTopics(config, comm, queuerole='master')
+    amqtopics = amq.getAllTopics(config, comm, queuerole='server')
     amqs = connSetup.connAMQ(comm, amqtopics, amqlistener=amqlistener)
 
     # Just hardcode this for now. It's a prototype!
