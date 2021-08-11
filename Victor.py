@@ -104,11 +104,11 @@ def main():
         cmd_id = str(uuid4())
         cmd = 'advertise'
         inst = 'all'
-        device = 'all'
+        devicetype = 'all'
         tag = None
         value = None
 
-        cmdpak = publishers.constructCommand(inst, device,
+        cmdpak = publishers.constructCommand(inst, devicetype,
                                              tag, cmd,
                                              value=value,
                                              cmd_id=cmd_id,

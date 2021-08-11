@@ -38,7 +38,7 @@ def constructCommand(inst, device, tag, cmd,
     fields.update({"command": cmd})
     fields.update({"argument": value})
 
-    pak = constructXMLPacket(mstr, fields, cmd_id,
+    pak = constructXMLPacket(mstr, fields, cmd_id=cmd_id,
                              rootTag="MrFreezeCommunique",
                              debug=debug)
 
