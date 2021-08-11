@@ -213,7 +213,7 @@ def queueProcessor(sched, queueActions, allInsts, conn, queue):
     for action in queueActions:
         # Parse the incoming action by hand since it's a simple deal
         ainst = action['request_instrument']
-        adevc = action['request_device']
+        adevc = action['request_devicetype']
         atag = action['request_tag']
         acmd = action['request_command']
         aarg = action['request_argument']

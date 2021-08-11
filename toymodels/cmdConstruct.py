@@ -53,7 +53,7 @@ if __name__ == "__main__":
     print(fields)
 
     inst = fields['request_instrument'].lower()
-    device = fields['request_device'].lower()
+    device = fields['request_devicetype'].lower()
     tag = fields['request_tag']
     cmd = fields['request_command']
     arg = fields['request_argument']
