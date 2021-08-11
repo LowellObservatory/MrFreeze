@@ -103,7 +103,7 @@ def constructXMLPacket(measurement, fields, cmd_id=None,
 
     dPacket = OrderedDict()
 
-    restOfStuff= {"cmd_id": cmd_id}
+    restOfStuff = {"cmd_id": cmd_id}
     restOfStuff.update({measurement: fields})
 
     dPacket.update({rootTag: restOfStuff})
