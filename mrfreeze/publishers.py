@@ -31,9 +31,6 @@ def constructCommand(inst, device, tag, cmd,
     mstr = "request"
     fields = {}
 
-    if cmd_id is None:
-        cmd_id = str(uuid4())
-
     # I'm keeping this super simple, just a set of tags under the root tag
     fields.update({"instrument": inst})
     fields.update({"devicetype": device})
@@ -91,7 +88,7 @@ def advertiseConfiged(config, debug=True):
     return pak
 
 
-def constructXMLPacket(measurement, fields, cmd_id,
+def constructXMLPacket(measurement, fields, cmd_id=None,
                        rootTag="MrFreezeCommunique", debug=False):
     """
     measurement should be a string describing the thing
@@ -100,6 +97,9 @@ def constructXMLPacket(measurement, fields, cmd_id,
     if not isinstance(fields, dict):
         print("fields must be a dict! Aborting.")
         return None
+
+    if cmd_id is None:
+        cmd_id = str(uuid4())
 
     dPacket = OrderedDict()
 
