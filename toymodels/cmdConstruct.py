@@ -33,13 +33,13 @@ if __name__ == "__main__":
     # value = None
 
     inst = 'NIHTS'
-    device = 'sunpowergen2'
+    devicetype = 'sunpowergen2'
     tag = 'BenchCooler'
     cmd = 'querydisable'
     value = None
 
     # Make a packet of the above. It's ok for value to be None.
-    msg = publishers.constructCommand(inst, device, tag, cmd,
+    msg = publishers.constructCommand(inst, devicetype, tag, cmd,
                                       value=value, debug=True)
 
     # Parse the packet. Have to do some boilerplate crap first to set up
