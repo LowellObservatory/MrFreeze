@@ -15,6 +15,7 @@ from __future__ import division, print_function, absolute_import
 
 import datetime as dt
 from collections import OrderedDict
+from uuid import uuid4
 
 import xmltodict as xmld
 
@@ -23,20 +24,24 @@ from ligmos.utils import packetizer
 from . import parsers
 
 
-def constructCommand(inst, device, tag, cmd, value=None, debug=False):
+def constructCommand(inst, device, tag, cmd,
+                     value=None, cmd_id=None, debug=False):
     """
     """
     mstr = "request"
     fields = {}
 
+    if cmd_id is None:
+        cmd_id = str(uuid4())
+
     # I'm keeping this super simple, just a set of tags under the root tag
     fields.update({"instrument": inst})
-    fields.update({"device": device})
+    fields.update({"devicetype": device})
     fields.update({"tag": tag})
     fields.update({"command": cmd})
     fields.update({"argument": value})
 
-    pak = constructXMLPacket(mstr, fields,
+    pak = constructXMLPacket(mstr, fields, cmd_id,
                              rootTag="MrFreezeCommunique",
                              debug=debug)
 
@@ -86,8 +91,8 @@ def advertiseConfiged(config, debug=True):
     return pak
 
 
-def constructXMLPacket(measurement, fields, rootTag="MrFreezeCommunique",
-                       debug=False):
+def constructXMLPacket(measurement, fields, cmd_id,
+                       rootTag="MrFreezeCommunique", debug=False):
     """
     measurement should be a string describing the thing
     fields should be a dict!
@@ -98,7 +103,8 @@ def constructXMLPacket(measurement, fields, rootTag="MrFreezeCommunique",
 
     dPacket = OrderedDict()
 
-    restOfStuff = {measurement: fields}
+    restOfStuff= {"cmd_id": cmd_id}
+    restOfStuff.update({measurement: fields})
 
     dPacket.update({rootTag: restOfStuff})
     xPacket = xmld.unparse(dPacket)
