@@ -67,7 +67,7 @@ def advertiseConfiged(config, debug=True):
                 print("Skipping advertisement of upfile %s" % (d))
             else:
                 devdict = {"instrument": dev.instrument,
-                           "device": dev.devtype,
+                           "devicetype": dev.devtype,
                            "tag": dev.extratag,
                            "hostname": dev.devhost,
                            "port": dev.devport,
