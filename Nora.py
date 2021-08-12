@@ -130,13 +130,6 @@ def main():
         # Make sure we update our hardcoded reference
         conn = amqs['broker-dct'][0]
 
-        # Check for any actions, and do them if it's their time
-        print("Checking schedule for pending tasks...")
-        sched.run_pending()
-        for job in sched.jobs:
-            remaining = (job.next_run - datetime.now()).total_seconds()
-            print("    %s in %f seconds" % (job.tags, remaining))
-
         # Check for any updates to those actions, or any commanded
         #   actions in general
         print("Cleaning out the queue...")
@@ -146,6 +139,13 @@ def main():
         # Process and deal with the things in the queue
         allInsts = actions.queueProcessor(sched, queueActions, allInsts,
                                           conn, queue)
+
+        # Check for any actions, and do them if it's their time
+        print("Checking schedule for pending tasks...")
+        sched.run_pending()
+        for job in sched.jobs:
+            remaining = (job.next_run - datetime.now()).total_seconds()
+            print("    %s in %f seconds" % (job.tags, remaining))
 
         # Diagnostic output
         nleft = len(amqlistener.brokerQueue.items())
@@ -157,7 +157,7 @@ def main():
             print("Starting a big sleep")
             # Sleep for bigsleep, but in small chunks to check abort
             for _ in range(bigsleep):
-                time.sleep(1)
+                time.sleep(0.25)
                 if runner.halt is True:
                     break
 
