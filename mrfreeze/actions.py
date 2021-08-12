@@ -224,11 +224,12 @@ def queueProcessor(sched, queueActions, allInsts, conn, queue):
         acmd = action['request_command']
         aarg = action['request_argument']
         cmdid = action['cmd_id']
+        toq = action['timeonqueue']
 
         # Do a simple check to see if it's a command for Nora
         if acmd.lower() == 'advertise':
             print("Advertising the current actions...")
-            adpacket = pubs.advertiseConfiged(allInsts, cmdid)
+            adpacket = pubs.advertiseConfiged(allInsts, cmdid, toq)
             conn.publish(queue.replytopic, adpacket)
         else:
             # All other command types are specific to an instrument

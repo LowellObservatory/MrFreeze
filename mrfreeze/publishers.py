@@ -45,7 +45,7 @@ def constructCommand(inst, device, tag, cmd,
     return pak
 
 
-def advertiseConfiged(config, cmdid, debug=True):
+def advertiseConfiged(config, cmdid, toq, debug=True):
     """
     Given a parsed configuration object, construct an advertisement
     of all the instruments and subsequent devices that were properly defined.
@@ -83,12 +83,13 @@ def advertiseConfiged(config, cmdid, debug=True):
 
     idict.update({"device": devlist})
 
-    pak = constructXMLPacket("advertisement", idict, cmd_id=cmdid, debug=debug)
+    pak = constructXMLPacket("advertisement", idict,
+                             cmd_id=cmdid, toq=toq, debug=debug)
 
     return pak
 
 
-def constructXMLPacket(measurement, fields, cmd_id=None,
+def constructXMLPacket(measurement, fields, cmd_id=None, toq=None,
                        rootTag="MrFreezeCommunique", debug=False):
     """
     measurement should be a string describing the thing
@@ -100,12 +101,21 @@ def constructXMLPacket(measurement, fields, cmd_id=None,
 
     if cmd_id is None:
         cmd_id = str(uuid4())
+    if toq is None:
+        # NOT -1 because that's an int!  If this gets parsed and stored
+        #   somewhere like a database, it'll complain so just keep it a float
+        toq = -1.0
 
     dPacket = OrderedDict()
 
+    # These should always be here
     restOfStuff = {"cmd_id": cmd_id}
+    restOfStuff.update({"timeonqueue": toq})
+
+    # This will add the individual measurement sections
     restOfStuff.update({measurement: fields})
 
+    # Put everything under the given rootTag
     dPacket.update({rootTag: restOfStuff})
     xPacket = xmld.unparse(dPacket)
     if debug is True:

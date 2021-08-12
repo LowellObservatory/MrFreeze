@@ -137,12 +137,14 @@ class MrFreezeConsumer(ConnectionListener):
 
         if checkQueue != {}:
             for uuid in checkQueue:
-                print("Removing %s from the queue, ready for action" % (uuid))
-                print(checkQueue[uuid])
-                action = self.brokerQueue.pop(uuid)
-
                 # Update the timeonqueue entry to show how long it sat
                 action['timeonqueue'] = time.time() - action['timeonqueue']
+                action = self.brokerQueue.pop(uuid)
+
+                # Really just a debug print but it helps here
+                print("Removing %s from the queue, ready for action" % (uuid))
+                print(checkQueue[uuid])
+
                 newactions.append(action)
 
         return newactions
