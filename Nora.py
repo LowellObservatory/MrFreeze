@@ -121,7 +121,11 @@ def main():
     # We need to make sure the connection to the broker is up first,
     #   though, because we need to get the LOIS reply topics connected.
     amqs = amq.checkConnections(amqs, subscribe=True)
-    sched.run_all(delay_seconds=0.5)
+    sched.run_all(delay_seconds=1.5)
+
+    # Interval for printing the diagnostic/debug/schedule information (in s)
+    printInerval = 5.
+    lastUpdate = time.monotonic()
 
     # Semi-infinite loop
     while runner.halt is False:
@@ -141,11 +145,13 @@ def main():
                                           conn, queue)
 
         # Check for any actions, and do them if it's their time
-        print("Checking schedule for pending tasks...")
-        sched.run_pending()
-        for job in sched.jobs:
-            remaining = (job.next_run - datetime.now()).total_seconds()
-            print("    %s in %f seconds" % (job.tags, remaining))
+        if (lastUpdate - time.monotonic()) > printInerval:
+            print("Next scheduled items:")
+            sched.run_pending()
+            for job in sched.jobs:
+                remaining = (job.next_run - datetime.now()).total_seconds()
+                print("    %s in %f seconds" % (job.tags, remaining))
+            lastUpdate = time.monotonic()
 
         # Diagnostic output
         nleft = len(amqlistener.brokerQueue.items())

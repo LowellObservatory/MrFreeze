@@ -66,6 +66,8 @@ def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
 
     # Now send the commands
     try:
+        # timeout is both the read and write timeout interval; hardcoded
+        #   here but it could be exposed someday/somehow if really needed
         reply = scomm.serComm(dvice.devhost, dvice.devport,
                               msgs, timeout=0.25, debug=debug)
     except serial.SerialException as err:
@@ -92,15 +94,19 @@ def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
                                               db=dbObj, broker=bkObj,
                                               compat=compat, debug=debug)
             if compat is not None:
+                # THIS IS A TOTAL HACK FOR NIHTS AND LOIS
                 upf = compat.makeNIHTSUpfile()
                 print(upf)
                 # Now push the upfile out to the place it needs to be
                 with open(compat.params['upfnme'], "w") as f:
                     f.write(upf)
 
+                # Potential failure point here if NIHTS (the server) is
+                #   offline, I think?  Needs checking, likely a bug here.
                 sshNIHTS = ssh.SSHWrapper(host=compat.params['host'],
                                           username=compat.params['user'],
                                           password=compat.params['pw'])
+
                 sshNIHTS.openSFTP()
                 lloc = "./%s" % (compat.params['upfnme'])
                 rloc = "%s/%s" % (compat.params['upfloc'],
@@ -108,7 +114,6 @@ def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
                 sshNIHTS.putFile(lloc, rloc)
                 sshNIHTS.closeSFTP()
                 sshNIHTS.closeConnection()
-
     except Exception as err:
         print("Unable to parse instrument response!")
         print(str(err))
@@ -135,7 +140,7 @@ def scheduleInstruments(sched, allInsts, amqs, idbs, debug=False):
     #   will be piled up in scheduled time.  Offset them by a small amount to
     #   account for the actual time needed to send/process the reply and
     #   then move on to the next scheduled action!
-    temporalOffset = 2
+    temporalOffset = 5
 
     # Loop thru the different instrument sets
     for inst in allInsts:
