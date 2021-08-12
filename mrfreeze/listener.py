@@ -116,7 +116,8 @@ class MrFreezeConsumer(ConnectionListener):
         # We NEED deepcopy() here to prevent the loop from being
         #   confused by a mutation/addition from the listener
         checkQueue = copy.deepcopy(self.brokerQueue)
-        print("%d items in the queue" % len(checkQueue.items()))
+        if len(checkQueue.items()) > 0:
+            print("%d items in the queue" % len(checkQueue.items()))
 
         newactions = []
 
