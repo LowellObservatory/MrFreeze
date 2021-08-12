@@ -67,7 +67,7 @@ def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
     # Now send the commands
     try:
         reply = scomm.serComm(dvice.devhost, dvice.devport,
-                              msgs, debug=debug)
+                              msgs, timeout=0.25, debug=debug)
     except serial.SerialException as err:
         print("Badness 10000")
         print(str(err))
