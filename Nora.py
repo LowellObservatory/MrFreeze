@@ -139,11 +139,11 @@ def main():
         # print("Cleaning out the queue...")
         queueActions = amqlistener.emptyQueue()
         if len(queueActions) > 0:
-            print("%d items obtained from the queue" % (len(queueActions)))
+            print("Running %d items from the queue" % (len(queueActions)))
 
-        # Process and deal with the things in the queue
-        allInsts = actions.queueProcessor(sched, queueActions, allInsts,
-                                          conn, queue)
+            # Process and deal with the things in the queue
+            allInsts = actions.queueProcessor(sched, queueActions, allInsts,
+                                              conn, queue)
 
         # Check for any actions, and do them if it's their time
         if (time.monotonic() - lastUpdate) > printInerval:

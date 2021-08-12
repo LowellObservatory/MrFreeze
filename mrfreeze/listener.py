@@ -123,9 +123,8 @@ class MrFreezeConsumer(ConnectionListener):
 
         if checkQueue != {}:
             for uuid in checkQueue:
-                print("Processing command %s" % (uuid))
+                print("Removing %s from the queue, ready for action" % (uuid))
                 print(checkQueue[uuid])
-                print("Removing it from the queue...")
                 action = self.brokerQueue.pop(uuid)
                 newactions.append(action)
 
