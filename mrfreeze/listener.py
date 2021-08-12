@@ -142,8 +142,8 @@ class MrFreezeConsumer(ConnectionListener):
                 action['timeonqueue'] = time.time() - action['timeonqueue']
 
                 # Really just a debug print but it helps here
-                print("Removing %s from the queue, ready for action" % (uuid))
-                print(checkQueue[uuid])
+                print("Removed %s from the queue, ready for action" % (uuid))
+                print(action)
 
                 newactions.append(action)
 
