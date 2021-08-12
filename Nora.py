@@ -136,16 +136,17 @@ def main():
 
         # Check for any updates to those actions, or any commanded
         #   actions in general
-        print("Cleaning out the queue...")
+        # print("Cleaning out the queue...")
         queueActions = amqlistener.emptyQueue()
-        print("%d items obtained from the queue" % (len(queueActions)))
+        if len(queueActions) > 0:
+            print("%d items obtained from the queue" % (len(queueActions)))
 
         # Process and deal with the things in the queue
         allInsts = actions.queueProcessor(sched, queueActions, allInsts,
                                           conn, queue)
 
         # Check for any actions, and do them if it's their time
-        if (lastUpdate - time.monotonic()) > printInerval:
+        if (time.monotonic() - lastUpdate) > printInerval:
             print("Next scheduled items:")
             sched.run_pending()
             for job in sched.jobs:
@@ -154,13 +155,13 @@ def main():
             lastUpdate = time.monotonic()
 
         # Diagnostic output
-        nleft = len(amqlistener.brokerQueue.items())
-        print("%d items still in the queue" % (nleft))
-        print("Done for now!")
+        # nleft = len(amqlistener.brokerQueue.items())
+        # print("%d items still in the queue" % (nleft))
+        # print("Done for now!")
 
         # Consider taking a big nap
         if runner.halt is False:
-            print("Starting a big sleep")
+            # print("Starting a big sleep")
             # Sleep for bigsleep, but in small chunks to check abort
             for _ in range(bigsleep):
                 time.sleep(0.25)
