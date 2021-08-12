@@ -112,7 +112,10 @@ class MrFreezeConsumer(ConnectionListener):
                 try:
                     cmduuid = cmddict['cmd_id']
                 except KeyError:
-                    # UUID4 is just a random UUID
+                    # The cmd producer SHOULD have appended a (UNIQUE!) tag
+                    #   to the cmd XML before it sent it, but if it wasn't
+                    #   there, generate a random UUID so it could be tracked
+                    #   at least part of the way back to the source.
                     cmduuid = str(uuid4())
 
                 self.brokerQueue.update({cmduuid: cmddict})
