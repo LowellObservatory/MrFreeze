@@ -89,18 +89,7 @@ def main():
         # Make sure we update our hardcoded reference
         conn = amqs['broker-dct'][0]
 
-        # Leaving this in a loop for testing for now; Victor will
-        #   turn into a single-shooter when he's ready
-        # inst = 'NIHTS'
-        # device = 'sunpowergen2'
-        # tag = 'BenchCooler'
-        # cmd = 'querydisable'
-        # value = None
-
-        # cmdpak = mrfreeze.publishers.constructCommand(inst, device,
-        #                                               tag, cmd,
-        #                                               value=value,
-        #                                               debug=True)
+        # Testing!
         cmd_id = str(uuid4())
         cmd = 'advertise'
         inst = 'all'
@@ -124,6 +113,7 @@ def main():
                 time.sleep(1)
                 if runner.halt is True:
                     break
+        # Testing!
         break
 
     # The above loop is exited when someone sends SIGTERM
