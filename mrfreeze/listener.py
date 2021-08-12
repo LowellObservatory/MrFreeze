@@ -15,6 +15,7 @@ Further description.
 
 from __future__ import division, print_function, absolute_import
 
+import time
 import copy
 from uuid import uuid4
 from collections import OrderedDict
@@ -107,6 +108,10 @@ class MrFreezeConsumer(ConnectionListener):
                 print("="*11)
 
             if cmddict != {}:
+                # Track the time it was on the queue for later diagnostics.
+                #   This will be updated to just the difference/elapsed time
+                #   when the action is done and sent back on the reply topic
+                cmddict.update({"timeonqueue": time.time()})
                 # This lets us make sure that we remove the right one from
                 #   the queue when it's processed
                 try:
@@ -118,6 +123,7 @@ class MrFreezeConsumer(ConnectionListener):
                     #   at least part of the way back to the source.
                     cmduuid = str(uuid4())
 
+                # Finally put it all on the queue for later consumption
                 self.brokerQueue.update({cmduuid: cmddict})
 
     def emptyQueue(self):
@@ -134,6 +140,9 @@ class MrFreezeConsumer(ConnectionListener):
                 print("Removing %s from the queue, ready for action" % (uuid))
                 print(checkQueue[uuid])
                 action = self.brokerQueue.pop(uuid)
+
+                # Update the timeonqueue entry to show how long it sat
+                action['timeonqueue'] = time.time() - action['timeonqueue']
                 newactions.append(action)
 
         return newactions
