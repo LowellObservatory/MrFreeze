@@ -105,6 +105,7 @@ class MrFreezeConsumer(ConnectionListener):
                 print(headers)
                 print(body)
                 print("="*11)
+
             if cmddict != {}:
                 # This lets us make sure that we remove the right one from
                 #   the queue when it's processed
@@ -113,7 +114,8 @@ class MrFreezeConsumer(ConnectionListener):
                 except KeyError:
                     # UUID4 is just a random UUID
                     cmduuid = str(uuid4())
-                    self.brokerQueue.update({cmduuid: cmddict})
+
+                self.brokerQueue.update({cmduuid: cmddict})
 
     def emptyQueue(self):
         # We NEED deepcopy() here to prevent the loop from being
