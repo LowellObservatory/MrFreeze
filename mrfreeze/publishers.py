@@ -45,7 +45,7 @@ def constructCommand(inst, device, tag, cmd,
     return pak
 
 
-def advertiseConfiged(config, debug=True):
+def advertiseConfiged(config, cmdid, debug=True):
     """
     Given a parsed configuration object, construct an advertisement
     of all the instruments and subsequent devices that were properly defined.
@@ -83,7 +83,7 @@ def advertiseConfiged(config, debug=True):
 
     idict.update({"device": devlist})
 
-    pak = constructXMLPacket("advertisement", idict, debug=debug)
+    pak = constructXMLPacket("advertisement", idict, cmd_id=cmdid, debug=debug)
 
     return pak
 

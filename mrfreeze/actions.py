@@ -217,16 +217,18 @@ def queueProcessor(sched, queueActions, allInsts, conn, queue):
     # Do some stuff!
     for action in queueActions:
         # Parse the incoming action by hand since it's a simple deal
+        #   If the schema worked as it should, all of these will exist.
         ainst = action['request_instrument']
         adevc = action['request_devicetype']
         atag = action['request_tag']
         acmd = action['request_command']
         aarg = action['request_argument']
+        cmdid = action['cmd_id']
 
         # Do a simple check to see if it's a command for Nora
         if acmd.lower() == 'advertise':
             print("Advertising the current actions...")
-            adpacket = pubs.advertiseConfiged(allInsts)
+            adpacket = pubs.advertiseConfiged(allInsts, cmdid)
             conn.publish(queue.replytopic, adpacket)
         else:
             # All other command types are specific to an instrument
