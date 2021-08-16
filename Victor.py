@@ -16,6 +16,7 @@ import time
 from uuid import uuid4
 
 from ligmos.workers import workerSetup, connSetup
+from ligmos.utils import amq_listeners as amql
 from ligmos.utils import amq, common, classes, confparsers
 
 from mrfreeze import publishers
@@ -74,7 +75,7 @@ def main():
     #   a bit shortcut and hardcode for the DCT influx database.
     # Someone more clever than I can clean up.
     db = idbs['database-dct']
-    amqlistener = amq.ParrotSubscriber(dictify=False)
+    amqlistener = amql.ParrotSubscriber(dictify=False)
     amqtopics = amq.getAllTopics(config, comm, queuerole='client')
     amqs = connSetup.connAMQ(comm, amqtopics, amqlistener=amqlistener)
 
