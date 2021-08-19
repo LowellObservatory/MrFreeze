@@ -20,11 +20,9 @@ import copy
 from uuid import uuid4
 from collections import OrderedDict
 
-import xmltodict as xmld
-
 from stomp.listener import ConnectionListener
 
-from ligmos import utils
+from ligmos.utils import xmlschemas as myxml
 
 from . import parsers
 from . import publishers
@@ -36,7 +34,7 @@ class MrFreezeConsumer(ConnectionListener):
         This is just to route the messages to the right parsers
         """
         # Grab all the schemas that are in the ligmos library
-        self.schemaDict = utils.amq.schemaDicter()
+        self.schemaDict = myxml.schemaDicter()
         self.brokerQueue = OrderedDict()
 
         # This assumes that the database object was set up elsewhere
