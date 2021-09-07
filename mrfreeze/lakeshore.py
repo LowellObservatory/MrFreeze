@@ -103,8 +103,8 @@ def allCommands(device):
                 "setsetp2": setsetp2,
                 "gethtrpwr1": gethtrpwr1,
                 "gethtrpwr2": gethtrpwr2,
-                "gethtr": gethtr1,
-                "sethtr": sethtr1,
+                "gethtr": gethtr,
+                "sethtr": sethtr,
                 }
 
     return cset, term
@@ -132,6 +132,8 @@ def defaultQueries(device):
                 "SensorTempBOhm": allCmds["readbohm"] + term,
                 "Setpoint1": allCmds["getsetp1"] + term,
                 "Setpoint2": allCmds["getsetp2"] + term,
+                "Loop1State": allCmds['gethtr1'] + term,
+                "Loop2State": allCmds['gethtr2'] + term,
                 "Heater1": allCmds["gethtrpwr1"] + term,
                 "Heater2": allCmds["gethtrpwr2"] + term}
 
