@@ -15,11 +15,7 @@ from __future__ import division, print_function, absolute_import
 
 import os
 import datetime as dt
-try:
-    from collections.abc import MutableMapping
-except ImportError:
-    from collections import MutableMapping
-
+from collections.abc import MutableMapping
 
 import xmlschema as xmls
 
@@ -336,6 +332,9 @@ def parseNewport(cmdtype, reply, debug=True):
 
 def parserCmdPacket(hed, msg, schema=None, debug=False, db=None):
     """
+    def parserFlatPacket(hed, msg, schema=None, db=None, debug=False,
+                         timestampKey='influx_ts', returnParsed=False):
+
     db=None is needed for ligmos LIGBaseConsumer compatibility!!
     """
     # print(msg)
