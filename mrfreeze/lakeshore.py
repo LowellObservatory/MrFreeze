@@ -56,10 +56,12 @@ def allCommands(device):
         setsetp2 = "SETP 2"
 
         gethtrpwr1 = "HTR? 1"
+        gethtrrnge1 = "HTRRES? 1"
         gethtr1 = "RANGE? 1"
         sethtr1 = "RANGE 1"
 
         gethtrpwr2 = "HTR? 2"
+        gethtrrnge2 = "HTRRES? 2"
         gethtr2 = "RANGE? 2"
         sethtr2 = "RANGE 2"
 
@@ -72,9 +74,11 @@ def allCommands(device):
                 "getsetp2": getsetp2,
                 "setsetp2": setsetp2,
                 "gethtrpwr1": gethtrpwr1,
+                "gethtrrnge1": gethtrrnge1,
                 "gethtr1": gethtr1,
                 "sethtr1": sethtr1,
                 "gethtrpwr2": gethtrpwr2,
+                "gethtrrnge2": gethtrrnge2,
                 "gethtr2": gethtr2,
                 "sethtr2": sethtr2}
     elif device == "lakeshore331":
@@ -132,6 +136,8 @@ def defaultQueries(device):
                 "SensorTempBOhm": allCmds["readbohm"] + term,
                 "Setpoint1": allCmds["getsetp1"] + term,
                 "Setpoint2": allCmds["getsetp2"] + term,
+                "Heater1Range": allCmds["gethtrrnge1"] + term,
+                "Heater2Range": allCmds["gethtrrnge2"] + term,
                 "Loop1State": allCmds['gethtr1'] + term,
                 "Loop2State": allCmds['gethtr2'] + term,
                 "Heater1": allCmds["gethtrpwr1"] + term,
