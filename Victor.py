@@ -16,7 +16,7 @@ import time
 from uuid import uuid4
 
 from ligmos.workers import workerSetup, connSetup
-from ligmos.utils import amq_listeners as amql
+from ligmos.utils import amqListeners as amql
 from ligmos.utils import amq, common, classes, confparsers
 
 from mrfreeze import publishers
@@ -27,7 +27,7 @@ def main():
     """
     # Define the default files we'll use/look for. These are passed to
     #   the worker constructor (toServeMan).
-    devices = './config/mrfreeze.conf'
+    devices = './config/victor.conf'
     deviceconf = classes.instrumentDeviceTarget
     passes = './config/passwords.conf'
     logfile = './mrfreeze_victor.log'
