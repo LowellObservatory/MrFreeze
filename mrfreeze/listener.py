@@ -15,14 +15,6 @@ Further description.
 
 from __future__ import division, print_function, absolute_import
 
-import time
-import copy
-from uuid import uuid4
-from collections import OrderedDict
-
-from stomp.listener import ConnectionListener
-
-from ligmos.utils import xmlschemas as myxml
 from ligmos.utils import amqListeners as amqL
 from ligmos.utils import messageParsers as mP
 
