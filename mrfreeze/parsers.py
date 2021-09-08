@@ -334,8 +334,9 @@ def parseNewport(cmdtype, reply, debug=True):
     return fields
 
 
-def parserCmdPacket(hed, msg, schema=None, debug=False):
+def parserCmdPacket(hed, msg, schema=None, debug=False, db=None):
     """
+    db=None is needed for ligmos LIGBaseConsumer compatibility!!
     """
     # print(msg)
     # This is really the topic name, so we'll make that the measurement name
