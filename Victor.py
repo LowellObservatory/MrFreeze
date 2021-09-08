@@ -74,13 +74,13 @@ def main():
     #   Since we're hardcoding for the DCTConsumer anyways, I'll take
     #   a bit shortcut and hardcode for the DCT influx database.
     # Someone more clever than I can clean up.
-    db = idbs['database-dct']
+    db = idbs['database-primary']
     amqlistener = amql.ParrotSubscriber(dictify=False)
     amqtopics = amq.getAllTopics(config, comm, queuerole='client')
     amqs = connSetup.connAMQ(comm, amqtopics, amqlistener=amqlistener)
 
     # Just hardcode this for now. It's a prototype!
-    conn = amqs['broker-dct'][0]
+    conn = amqs['broker-primary'][0]
     queue = comm['queue-mrfreeze']
 
     # Semi-infinite loop
@@ -88,7 +88,7 @@ def main():
         # Check on our connections
         amqs = amq.checkConnections(amqs, subscribe=True)
         # Make sure we update our hardcoded reference
-        conn = amqs['broker-dct'][0]
+        conn = amqs['broker-primary'][0]
 
         # Testing!
         cmd_id = str(uuid4())
