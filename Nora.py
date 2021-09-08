@@ -28,10 +28,10 @@ def main():
     """
     # Define the default files we'll use/look for. These are passed to
     #   the worker constructor (toServeMan).
-    devices = '../../conf/mrfreeze.conf'
+    devices = './config/mrfreeze.conf'
     deviceconf = classes.instrumentDeviceTarget
     passes = None
-    logfile = '../../logs/nora.log'
+    logfile = './logs/nora.log'
     desc = "Nora: Heart of the Instrument Cooler Manager"
     eargs = None
     logenable = True
@@ -93,11 +93,12 @@ def main():
     idbs = connSetup.connIDB(comm)
 
     # Specify our custom listener that will really do all the work
-    #   Since we're hardcoding for the DCTConsumer anyways, I'll take
-    #   a bit shortcut and hardcode for the DCT influx database.
-    # Someone more clever than I can clean up.
-    db = idbs['database-dct']
-    amqlistener = listener.MrFreezeConsumer(db=db)
+    #   Someone more clever than I can clean this up to be more general.
+    db = idbs['database-primary']
+    # amqlistener = listener.MrFreezeConsumer(db=db)
+    amqlistener = listener.newFreezie(comm['queue-mrfreeze'].cmdtopic,
+                                      comm['queue-mrfreeze'].replytopic,
+                                      dbconn=db)
 
     # TODO: Figure out a way to create a dict of listeners specified
     #   in some creative way. Could add a configuration item to the
@@ -106,7 +107,7 @@ def main():
     amqs = connSetup.connAMQ(comm, amqtopics, amqlistener=amqlistener)
 
     # Just hardcode this for now. It's a prototype!
-    conn = amqs['broker-dct'][0]
+    conn = amqs['broker-primary'][0]
     queue = comm['queue-mrfreeze']
 
     # Assemble our *initial* schedule of actions. This will be adjusted
@@ -132,12 +133,12 @@ def main():
         # Check on our connections
         amqs = amq.checkConnections(amqs, subscribe=True)
         # Make sure we update our hardcoded reference
-        conn = amqs['broker-dct'][0]
+        conn = amqs['broker-primary'][0]
 
         # Check for any updates to those actions, or any commanded
         #   actions in general
         # print("Cleaning out the queue...")
-        queueActions = amqlistener.emptyQueue()
+        queueActions = amqlistener.queueEmpty()
         if len(queueActions) > 0:
             print("Running %d items from the queue" % (len(queueActions)))
 
