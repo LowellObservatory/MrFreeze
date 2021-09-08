@@ -165,6 +165,11 @@ def main():
             # print("Starting a big sleep")
             # Sleep for bigsleep, but in small chunks to check abort
             for _ in range(bigsleep):
+                # Make sure we run any tasks here to keep things snappy
+                #   and moving along
+                sched.run_pending()
+
+                # Take a bit of a nap
                 time.sleep(0.25)
                 if runner.halt is True:
                     break
