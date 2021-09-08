@@ -24,6 +24,7 @@ from stomp.listener import ConnectionListener
 
 from ligmos.utils import xmlschemas as myxml
 from ligmos.utils import amqListeners as amqL
+from ligmos.utils import messageParsers as mP
 
 from . import parsers
 from . import publishers
@@ -40,7 +41,7 @@ def newFreezie(cmdTopic, replyTopic, dbconn=None):
     #   NOTE: the special functions must all take the following arguments:
     #       headers, body, db=None, schema=None
     #   This is to ensure compatibility with the consumer provided inputs!
-    tkXMLSpecial = {cmdTopic: parsers.parserCmdPacket}
+    tkXMLSpecial = {cmdTopic: mP.parserCmdPacket}
 
     # Topics that are just bare floats
     tFloat = []
@@ -136,9 +137,9 @@ class MrFreezeConsumer(ConnectionListener):
             try:
                 if tname == 'lig.MrFreeze.cmd':
                     schema = self.schemaDict[tname]
-                    cmddict = parsers.parserCmdPacket(headers, body,
-                                                      schema=schema,
-                                                      debug=True)
+                    cmddict = mP.parserCmdPacket(headers, body,
+                                                 schema=schema,
+                                                 debug=True)
 
                 elif tname.endswith("loisLog"):
                     tfields = parsers.parseLOISTemps(headers, body)
