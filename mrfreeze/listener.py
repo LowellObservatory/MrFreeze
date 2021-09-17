@@ -31,9 +31,8 @@ def newFreezie(cmdTopic, replyTopic, dbconn=None):
     # Topics that can be parsed directly via XML schema, but require more work
     # A *dict* of special topics and their custom parser/consumer.
     #   NOTE: the special functions must all take the following arguments:
-    #       headers, body, db=None, schema=None
+    #       parsedDictFromXML, db=None
     #   This is to ensure compatibility with the consumer provided inputs!
-    # tkXMLSpecial = {cmdTopic: mP.parserCmdPacket}
     tkXMLSpecial = {}
 
     # Topics that are just bare floats
