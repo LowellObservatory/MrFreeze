@@ -33,7 +33,8 @@ def newFreezie(cmdTopic, replyTopic, dbconn=None):
     #   NOTE: the special functions must all take the following arguments:
     #       headers, body, db=None, schema=None
     #   This is to ensure compatibility with the consumer provided inputs!
-    tkXMLSpecial = {cmdTopic: mP.parserCmdPacket}
+    # tkXMLSpecial = {cmdTopic: mP.parserCmdPacket}
+    tkXMLSpecial = {}
 
     # Topics that are just bare floats
     tFloat = []
