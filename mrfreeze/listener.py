@@ -52,7 +52,8 @@ def newFreezie(cmdTopic, replyTopic, dbconn=None):
                 "LOUI.lemi.loisLog": temperLOIS,
                 "LOUI.nihts.loisLog": temperLOIS,
                 "LOUI.RC1.loisLog": temperLOIS,
-                "LOUI.RC2.loisLog": temperLOIS}
+                "LOUI.RC2.loisLog": temperLOIS,
+                "LOUI.nasa42.loisLog": temperLOIS}
 
     # Create our subclassed consumer with the above routes
     consumer = amqL.queueMaintainer(cmdTopic, replyTopic,
