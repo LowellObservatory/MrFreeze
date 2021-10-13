@@ -69,7 +69,7 @@ def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
         # timeout is both the read and write timeout interval; hardcoded
         #   here but it could be exposed someday/somehow if really needed
         reply = scomm.serComm(dvice.devhost, dvice.devport,
-                              msgs, timeout=0.75, debug=debug)
+                              msgs, timeout=1.00, debug=debug)
     except serial.SerialException as err:
         print("Badness 10000")
         print(str(err))
