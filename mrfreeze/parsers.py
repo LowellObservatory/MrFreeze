@@ -159,6 +159,8 @@ def parseSunpower(reply):
         elif cmd.lower() == "set pid":
             # Quick hack for the return type here. Meh.
             finale = {"PIDMode": int(float(rep[0]))}
+        elif cmd.lower() == "set pwout":
+            finale = {"PowerTarget": float(rep[0])}
         else:
             print("Unknown Sunpower Response!")
 

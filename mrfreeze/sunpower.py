@@ -38,11 +38,13 @@ def allCommands(device):
         target = "SET TTARGET"
         cmdpower = "E"
         pidmode = "SET PID"
+        pwrout = "SET PWOUT"
 
         cset = {"coldtip": coldtip,
                 "target": target,
                 "cmdpower": cmdpower,
-                "pidmode": pidmode}
+                "pidmode": pidmode,
+                "pwrout": pwrout}
 
         # NOTE a Gen. 2 type is a subset of the above!
         if device == "sunpowergen2":
@@ -84,7 +86,8 @@ def defaultQueries(device):
         cset = {"ColdTip": allCmds["coldtip"] + term,
                 "TargetTemp": allCmds["target"] + term,
                 "PowerCommanded": allCmds["cmdpower"] + term,
-                "PIDMode": allCmds["pidmode"] + term}
+                "PIDMode": allCmds["pidmode"] + term,
+                "PowerTarget": allCmds["pwrout"] + term}
 
     elif device == "sunpowergen2":
         cset = {"CoolerState": allCmds["state"] + term,
