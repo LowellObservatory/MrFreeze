@@ -44,6 +44,7 @@ def assignValueCmd(cmd, value, term, vtype=float, vterm='='):
 
 def decode(reply):
     """
+    TBD
     """
     try:
         dr = reply.decode("utf-8")
@@ -122,6 +123,7 @@ def parseLakeShore(cmdtype, reply, modelnum=218):
 
 def parseSunpower(reply):
     """
+    TBD
     """
     splitter = "\r\n"
     dr = decode(reply)
@@ -154,6 +156,8 @@ def parseSunpower(reply):
             finale = dict(zip(keys, vals))
         elif cmd.lower() == "set ttarget":
             finale = {"TargetTemp": float(rep[0])}
+        elif cmd.lower() == "set pid":
+            finale = {"PIDMode": int(rep[0])}
         else:
             print("Unknown Sunpower Response!")
 

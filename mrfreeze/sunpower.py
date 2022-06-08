@@ -37,10 +37,12 @@ def allCommands(device):
         coldtip = "TC"
         target = "SET TTARGET"
         cmdpower = "E"
+        pidmode = "SET PID"
 
         cset = {"coldtip": coldtip,
                 "target": target,
-                "cmdpower": cmdpower}
+                "cmdpower": cmdpower,
+                "pidmode": pidmode}
 
         # NOTE a Gen. 2 type is a subset of the above!
         if device == "sunpowergen2":
@@ -81,7 +83,8 @@ def defaultQueries(device):
     if device == "sunpowergen1":
         cset = {"ColdTip": allCmds["coldtip"] + term,
                 "TargetTemp": allCmds["target"] + term,
-                "PowerCommanded": allCmds["cmdpower"] + term}
+                "PowerCommanded": allCmds["cmdpower"] + term,
+                "PIDMode": allCmds["pidmode"] + term}
 
     elif device == "sunpowergen2":
         cset = {"CoolerState": allCmds["state"] + term,
@@ -94,6 +97,7 @@ def defaultQueries(device):
 
 def brokerAPI(dvice, cmd, value=None):
     """
+    TBD
     """
     allcmds, term = allCommands(dvice)
 
@@ -123,8 +127,7 @@ def brokerAPI(dvice, cmd, value=None):
                     pval = 1
                 else:
                     pval = None
-                    print("Unknown value %s for command %s!" %
-                          (value, cmd))
+                    print("Unknown value %s for command %s!" % (value, cmd))
 
                 if pval is not None:
                     fcmd = assignValueCmd(allcmds[cmd], pval, term,
