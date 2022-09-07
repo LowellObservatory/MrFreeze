@@ -114,7 +114,7 @@ def serLocalComm(devpath, cmds, sParams, timeout=1., debug=True):
         stop = sParams['stop']
     except KeyError:
         print("Malformed or wrong serial parameters! Trying defaults.")
-        baud = 9600
+        baud = 4800
         data = serial.EIGHTBITS
         parity = serial.PARITY_NONE
         stop = serial.STOPBITS_ONE
