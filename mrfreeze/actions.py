@@ -68,8 +68,17 @@ def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
     try:
         # timeout is both the read and write timeout interval; hardcoded
         #   here but it could be exposed someday/somehow if really needed
-        reply = scomm.serComm(dvice.devhost, dvice.devport,
-                              msgs, timeout=1.00, debug=debug)
+        # Also - if port is given as -1, assume that the devhost property
+        #   is really a local serial port, and route it accordingly
+        if dvice.devport != -1:
+            reply = scomm.serComm(dvice.devhost, dvice.devport,
+                                  msgs, timeout=1.00, debug=debug)
+        else:
+            # Bundle up the serial parameters; if it's empty, it'll
+            #   try 4800,8,N,1 so use that as a shortcut
+            sParams = {}
+            reply = scomm.serLocalComm(dvice.devhost, msgs, sParams,
+                                       timeout=1.00, debug=debug)
     except serial.SerialException as err:
         print("Badness 10000")
         print(str(err))
