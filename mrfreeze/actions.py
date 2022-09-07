@@ -70,7 +70,7 @@ def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
         #   here but it could be exposed someday/somehow if really needed
         # Also - if port is given as -1, assume that the devhost property
         #   is really a local serial port, and route it accordingly
-        if dvice.devport != -1:
+        if int(dvice.devport) != -1:
             reply = scomm.serComm(dvice.devhost, dvice.devport,
                                   msgs, timeout=1.00, debug=debug)
         else:
