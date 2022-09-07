@@ -98,3 +98,50 @@ def serComm(host, port, cmds, timeout=1., debug=False):
             print("Commands need to be given as a dict! Ignoring %s" % (cmds))
 
         return allreplies
+
+
+def serLocalComm(devpath, cmds, sParams, timeout=1., debug=True):
+    """
+    Ideally I would just combine this with the above and pass in appropriate
+    **args as needed for a bare Serial instance, but this works for now.
+    """
+    allreplies = {}
+
+    try:
+        baud = sParams['baud']
+        data = sParams['data']
+        parity = sParams['parity']
+        stop = sParams['stop']
+    except KeyError:
+        print("Malformed or wrong serial parameters! Trying defaults.")
+        baud = 9600
+        data = serial.EIGHTBITS
+        parity = serial.PARITY_NONE
+        stop = serial.STOPBITS_ONE
+
+    with serial.Serial(devpath, baud,
+                       bytesize=data, parity=parity, stopbits=stop,
+                       write_timeout=timeout, timeout=timeout) as ser:
+        if isinstance(cmds, dict):
+            # NOTE: cmds should be a dict mapping a description to the
+            #   actual command string that is sent. The description is
+            #   used to tag the reply for later processing so make it good.
+            for each in cmds:
+                msg = encoder(cmds[each])
+                serWriter(ser, msg)
+                # Get the time right after we sent the message
+                t = dt.datetime.utcnow()
+                # print(t.strptime("%Y-%m-%dT%H:%M:%S.%f UTC"))
+
+                # Get the answer; it'll take timeout seconds to return
+                byteReply = read_all(ser)
+                if debug is True:
+                    print("%d bytes recieved in response" % (len(byteReply)))
+                    print(byteReply)
+
+                # Store the stuff for returning
+                allreplies.update({each: [byteReply, t]})
+        else:
+            print("Commands need to be given as a dict! Ignoring %s" % (cmds))
+
+    return allreplies
