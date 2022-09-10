@@ -284,6 +284,7 @@ def parseLOISCheck(hed, msg):
             loisstate = "Uninitialized"
 
         fields.update({"LOISStatus": loisstate})
+        fields.update({"LOISStatusRaw": int(msgparts[1])})
     else:
         fields = {}
 
