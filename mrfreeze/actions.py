@@ -142,6 +142,21 @@ def cmd_loisgettemp(dvice, bkObj):
     bkObj.publish(dvice.devbrokercmd, cmd)
 
 
+@catch_exceptions(cancel_on_failure=False)
+def cmd_loisinitchk(dvice, bkObj):
+    """
+    Periodically send messages to the broker at bkObj to LOIS to
+    'lois_status any'
+
+    This is really all there is; the reply is monitored in the STOMP listener
+    defined in the main calling code, and since STOMP runs that in its own
+    thread it'll happen in the background compared to this loop here.
+    """
+    cmd = 'lois_status any'
+    print("Sending %s to broker topic %s" % (cmd, dvice.devbrokercmd))
+    bkObj.publish(dvice.devbrokercmd, cmd)
+
+
 def scheduleInstruments(sched, allInsts, amqs, idbs, debug=False):
     """
     """
@@ -197,13 +212,19 @@ def scheduleInstruments(sched, allInsts, amqs, idbs, debug=False):
                 # SPECIAL handling for this one, since it's not a serial
                 #   device but a broker command topic
                 if dvice.devtype.lower() == 'arc-loisgettemp':
-                    print("Scheduling 'gettemp' for %s every %d seconds" %
+                    print("Scheduling 'gettemp' for %s every %d sec" %
                           (dvice.instrument, interval))
                     sched.every(interval).seconds.do(cmd_loisgettemp,
                                                      dvice,
                                                      bkObj).tag(schedTag)
+                elif dvice.devtype.lower() == 'arc-loisinitcheck':
+                    print("Scheduling 'lois_status any' for %s every %d sec" %
+                          (dvice.instrument, interval))
+                    sched.every(interval).seconds.do(cmd_loisinitchk,
+                                                     dvice,
+                                                     bkObj).tag(schedTag)
                 else:
-                    print("Scheduling '%s' for %s every %d seconds" %
+                    print("Scheduling '%s' for %s every %d sec" %
                           (dvice.devtype, dvice.instrument, interval))
                     sched.every(interval).seconds.do(cmd_serial,
                                                      dvice, dbObj, bkObj,

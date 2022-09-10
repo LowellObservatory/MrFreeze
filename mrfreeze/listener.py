@@ -49,11 +49,17 @@ def newFreezie(cmdTopic, replyTopic, dbconn=None):
     #       headers, body, db=None, schema=None
     #   This is to ensure compatibility with the consumer provided inputs!
     tSpecial = {"LOUI.deveny.loisLog": temperLOIS,
+                "LOUI.deveny.loisCommandResult": checkLOIS,
                 "LOUI.lemi.loisLog": temperLOIS,
+                "LOUI.lemi.loisCommandResult": checkLOIS,
                 "LOUI.nihts.loisLog": temperLOIS,
+                "LOUI.nihts.loisCommandResult": checkLOIS,
                 "LOUI.RC1.loisLog": temperLOIS,
+                "LOUI.RC1.loisCommandResult": checkLOIS,
                 "LOUI.RC2.loisLog": temperLOIS,
-                "LOUI.nasa42.loisLog": temperLOIS}
+                "LOUI.RC2.loisCommandResult": checkLOIS,
+                "LOUI.nasa42.loisLog": temperLOIS,
+                "LOUI.nasa42.loisCommandResult": checkLOIS}
 
     # Create our subclassed consumer with the above routes
     consumer = amqL.queueMaintainer(cmdTopic, replyTopic,
@@ -87,6 +93,41 @@ def temperLOIS(headers, body, db=None):
         meas = ["DeVeny_arc-loisgettemp"]
     elif 'nasa42' in tname.lower():
         meas = ["NASA42_arc-loisgettemp"]
+
+    # Only store the packet if we actually have fields that
+    #   were successfully parsed
+    if tfields != {}:
+        publishers.makeAndPublishIDB(meas, tfields, db,
+                                     tags, table, debug=True)
+
+
+def checkLOIS(headers, body, db=None):
+    """
+    THIS IS INTENTED TO BE A STOPGAP!
+
+    At least until I get the rest of this listener sorted out.
+    """
+    tname = headers['destination'].split('/')[-1].strip()
+    tfields = parsers.parseLOISCheck(headers, body)
+    # A little bit of hackish because it's already ugly
+    #   I HATE THAT THESE ARE HARDCODED BUT IT'S FASTER
+    #   AND MAYBE LOIS WILL GO AWAY SOON SO I CAN DITCH THIS.
+    # I couldn't figure out a quick way to get the config
+    #   sections into here, but probably could with more effort
+    table = "MrFreeze"
+    tags = {"Device": "arc-loisinitchk"}
+    if 'lemi' in tname.lower():
+        meas = ["LMI_arc-loisinitchk"]
+    elif 'deveny' in tname.lower():
+        meas = ["DeVeny_arc-loisinitchk"]
+    elif 'nihts' in tname.lower():
+        meas = ["NIHTS_arc-loisinitchk"]
+    elif 'rc1' in tname.lower():
+        meas = ["RC1_arc-loisinitchk"]
+    elif 'rc2' in tname.lower():
+        meas = ["RC2_arc-loisinitchk"]
+    elif 'nasa42' in tname.lower():
+        meas = ["NASA42_arc-loisinitchk"]
 
     # Only store the packet if we actually have fields that
     #   were successfully parsed

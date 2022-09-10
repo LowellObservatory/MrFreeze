@@ -254,6 +254,42 @@ def parseLOISTemps(hed, msg):
     return fields
 
 
+def parseLOISCheck(hed, msg):
+    """
+    Intended to be called from an ActiveMQ listener
+
+    If initialized:
+    lois_status any^^0^^No Results Supplied
+
+    If not initialized:
+
+    lois_status any^^1^^No Results Supplied
+    """
+    topic = os.path.basename(hed['destination'])
+
+    # print(ts, msg)
+    # Bail early since this indicates it's not really a log line but
+    #   some other type of message (like a LOIS startup or something)
+    msgparts = msg.strip().split("^^")
+    if len(msgparts) != 3:
+        print("Unknown log line!")
+        print(msg)
+        return {}
+
+    fields = {}
+    if msgparts[0] == "lois_status any":
+        if int(msgparts[1]) == 0:
+            loisstate = "Initialized"
+        else:
+            loisstate = "Uninitialized"
+
+        fields.update({"LOISStatus": loisstate})
+    else:
+        fields = {}
+
+    return fields
+
+
 def parseNewport(cmdtype, reply, debug=True):
     """
     Expect replies to be in the following possible forms, depending on
