@@ -24,7 +24,14 @@ def allCommands(device):
 
     Specifically, there's no way to get the actual/measured power!
 
+    Gen 1 & Gen 2:
     4800 baud
+    8 data, 1 stop
+    no parity
+    CR line termination
+
+    AVC:
+    9600 baud
     8 data, 1 stop
     no parity
     CR line termination
@@ -35,10 +42,10 @@ def allCommands(device):
     if device in ['sunpowergen1', 'sunpowergen2']:
         term = "\r"
         coldtip = "TC"
-        target = "SET TTARGET"
         cmdpower = "E"
         pidmode = "SET PID"
         pwrout = "SET PWOUT"
+        target = "SET TTARGET"
 
         cset = {"coldtip": coldtip,
                 "target": target,
@@ -94,6 +101,9 @@ def defaultQueries(device):
                 "ColdTip": allCmds["coldtip"] + term,
                 "PowerMeasured": allCmds["mpower"] + term,
                 "PowerCommanded": allCmds["cmdpower"] + term}
+
+    elif device == "sunpowerAVC":
+        cset = {}
 
     return cset
 

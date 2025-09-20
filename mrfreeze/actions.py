@@ -125,6 +125,7 @@ def cmd_serial(dvice, dbObj, bkObj, compat=None, debug=False):
                 sshNIHTS.closeConnection()
     except Exception as err:
         print("Unable to parse instrument response!")
+        print(dvice, reply)
         print(str(err))
 
 
