@@ -141,7 +141,7 @@ def parseSunpower(reply):
             # Multi-stage list comprehension since I can't figure out
             #   how to do it all in one go....
             alls = [v.split("=") for v in rep]
-            keys = [v[0].strip() for v in alls]
+            keys = [v[0].strip().replace(" ", "_") for v in alls]
             vals = [float(v[1]) for v in alls]
 
             # Now combine the two into a more useful dict

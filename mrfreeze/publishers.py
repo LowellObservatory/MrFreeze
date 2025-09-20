@@ -111,8 +111,6 @@ def constructXMLPacket(measurement, fields, cmd_id=None, toq=None,
     # These should always be here
     restOfStuff = {"cmd_id": cmd_id}
     restOfStuff.update({"timeonqueue": toq})
-
-    # This will add the individual measurement sections
     restOfStuff.update({measurement: fields})
 
     # Put everything under the given rootTag
